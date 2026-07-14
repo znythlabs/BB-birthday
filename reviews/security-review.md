@@ -10,7 +10,7 @@
 ## Threat Model
 
 - Methodology references: Karpathy Skills surgical review and verifiable gate criteria.
-- Assets: Static invitation source, local generated raster images, Cloudflare Worker-compatible output.
+- Assets: Static invitation source, local generated raster images, local H.264 background video, Cloudflare Worker-compatible output.
 - Actors: Privately invited read-only visitors and the site owner editing local content.
 - Trust boundaries: Incoming host/proxy headers used only for absolute social metadata URLs; static client interaction state; private Sites deployment boundary.
 - Entry points: Root page request plus pointer, touch, keyboard, and focus events.
@@ -29,6 +29,7 @@
 | Injection risks | Pass | No `dangerouslySetInnerHTML`, `eval`, dynamic function construction, database query, shell call, or external request in app code. |
 | Motion/style mutation | Pass | Tail cadence, burst velocity, cooldowns, and return offsets are computed internally, bounded with `clamp`, and written through DOM style APIs rather than string-parsed markup. |
 | External asset exposure | Pass | Bodoni font files and mermaid body/tail layers are bundled locally; no third-party font or image request was added. |
+| Background media | Pass | Video is a local static H.264 asset rendered without controls, capture, external source, scriptable track, or user-supplied URL. |
 | CSRF/CORS/session handling | Not applicable | No mutation endpoint, cookies, or session. |
 | Dependency risk | Pass with note | Production audit reports two moderate PostCSS advisories through Next; no high/critical finding. The vulnerable stringify path receives trusted static CSS only. |
 | Logging and telemetry exposure | Pass | No application telemetry or personal-data logging. |

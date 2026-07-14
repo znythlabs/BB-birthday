@@ -71,11 +71,16 @@ button { color: inherit; }
   position: absolute;
   z-index: -10;
   inset: -2px;
-  background-image: url("/images/underwater/background-main.png");
-  background-position: center bottom;
-  background-size: cover;
+  display: block;
+  width: calc(100% + 4px);
+  height: calc(100% + 4px);
+  border: 0;
+  background: var(--ocean-deep);
+  object-fit: cover;
+  object-position: center bottom;
   filter: saturate(1.04) contrast(1.015);
   transform: scale(1.004);
+  pointer-events: none;
 }
 
 .water-vignette {
@@ -542,7 +547,7 @@ button { color: inherit; }
 
 @media (max-width: 760px) {
   .underwater-scene { min-height: 500px; }
-  .underwater-background { background-position: center bottom; }
+  .underwater-background { object-position: center bottom; }
   .title-bubble { top: max(8px, env(safe-area-inset-top)); padding: 5px 16px 8px; }
   .title-name { font-size: clamp(2.7rem, 13vw, 4rem); }
   .title-occasion { font-size: clamp(1.25rem, 6.4vw, 2rem); }

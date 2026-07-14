@@ -11,7 +11,7 @@
 
 ## Summary
 
-Refined the premium underwater scene from direct visual feedback. The mermaid now uses dedicated pixel-aligned body and tail PNG layers, preserving the full torso and both hands while an exactly two-pose tail stroke continues at idle and accelerates with live movement energy. Fish use a triggered burst/cooldown state so facing and travel direction always agree. Grounded discoveries sit partially below the reef line with contact shadows and foreground occlusion. The headline is now unboxed Bodoni-style pearlescent typography matching the cover treatment.
+Refined the premium underwater scene from direct visual feedback. The mermaid now uses dedicated pixel-aligned body and tail PNG layers, preserving the full torso and both hands while an exactly two-pose tail stroke continues at idle and accelerates with live movement energy. Fish use a triggered burst/cooldown state so facing and travel direction always agree. Grounded discoveries sit partially below the reef line with contact shadows and foreground occlusion. The headline is now unboxed Bodoni-style pearlescent typography matching the cover treatment. The full-bleed environment now loads from the supplied H.264 MP4 as a muted, looping, inline background video.
 
 ## Methodology References Used
 
@@ -29,6 +29,7 @@ Refined the premium underwater scene from direct visual feedback. The mermaid no
 - Moved every grounded discovery lower into the seabed, removed grounded-object idle drift, and added contact shadows plus foreground sand/reef occlusion.
 - Removed the large transparent ring-bubble layer and its unused asset.
 - Rebuilt the title as unboxed, locally bundled Bodoni Moda pearlescent typography matching the cover; detail messages remain structured pearl cards.
+- Replaced the obsolete PNG background layer with the supplied MP4 using autoplay, muted, loop, inline playback, eager preload, and an ocean-color initialization fallback.
 - Updated tests and documentation.
 
 ## Artifacts
@@ -44,6 +45,7 @@ Refined the premium underwater scene from direct visual feedback. The mermaid no
 - `npm run typecheck` — pass.
 - `npm test` — pass; production build plus 4/4 rendered regression tests.
 - `git diff --check` — pass.
+- Local media response — pass; `/images/underwater/background-main.mp4` returns HTTP 200 with `Content-Type: video/mp4`, and the rendered page includes the expected video and source elements.
 - React quality review — batched DOM reads before CSS writes; transient motion values remain in refs and CSS variables.
 
 ## Risks And Open Questions

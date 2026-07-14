@@ -317,7 +317,19 @@ export function UnderwaterScene() {
       onPointerUp={(event) => { if (draggingPointerRef.current === event.pointerId) draggingPointerRef.current = null; }}
       onPointerCancel={() => { draggingPointerRef.current = null; }}
     >
-      <div className="underwater-background" aria-hidden="true" />
+      <video
+        className="underwater-background"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+        tabIndex={-1}
+        disablePictureInPicture
+      >
+        <source src="/images/underwater/background-main.mp4" type="video/mp4" />
+      </video>
       <AmbientLayers />
 
       <div className="scene-frame" aria-hidden="true">

@@ -21,6 +21,7 @@
 | --- | --- | --- | --- | --- |
 | Unit | Automated | `node --test tests/rendered-html.test.mjs` via `npm test` | Pass | 4/4 tests pass. |
 | Integration | Automated | `npm test` | Pass | Full production build plus rendered-worker checks. |
+| Background video | Automated/manual HTTP | Render assertions plus local asset request | Pass | Page renders autoplay/muted/loop/playsInline video; MP4 returns HTTP 200, `video/mp4`, and the expected 11,543,305-byte length. |
 | Tail motion | Source/automated/manual asset preview | Tail-frame assertions, controller review, two-frame matte preview | Pass | Exactly two states; 920ms idle stroke accelerates toward 140ms; dedicated body layer preserves hands/torso; reduced motion stays at frame 0. |
 | Fish reaction | Source/automated | Flee-marker assertions and state review | Pass | Triggered velocity burst/cooldown replaces magnetic avoidance; base track pauses during escape; flip always matches horizontal travel. |
 | Environmental integration | Manual/source | Position, shadow, and occlusion-rule review | Pass | All grounded discoveries lowered into reef/sand with contact shadows, foreground occlusion, and no bobbing. |
@@ -44,4 +45,4 @@
 
 - Recommendation: `pass`
 - Required fixes before release: None.
-- Residual risk: Tail angle/cadence may benefit from subjective tuning after the family tests it on their preferred device.
+- Residual risk: Tail angle/cadence may benefit from subjective tuning after the family tests it on their preferred device; background playback follows normal browser media policies, with muted inline autoplay configured for broad compatibility.

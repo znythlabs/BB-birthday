@@ -17,7 +17,7 @@
 | UI/UX design spec | Yes | Updated `DESIGN.md`; no Penpot claim is made. |
 | Frontend Engineer handoff | Yes | Updated `handoffs/frontend-to-lead.md`. |
 | Backend / database inputs | Not applicable | Static client invitation. |
-| QA review pass | Yes | Updated `reviews/qa-review.md`; build and 4/4 tests pass. |
+| QA review pass | Yes | Updated `reviews/qa-review.md`; build and 4/4 tests pass, and the MP4 returns HTTP 200 as `video/mp4`. |
 | Security review pass | Yes | Updated `reviews/security-review.md`. |
 | Documentation | Yes | README describes continuous idle flapping, burst fish, local fonts, and separated art layers. |
 
@@ -28,7 +28,7 @@
 - Cross-role consistency: Source, artwork, design spec, handoff, README, tests, QA, and security review describe the same final system.
 - Production readiness: Clean lint/typecheck, successful vinext build, 4/4 tests, asset-access checks, diff check, QA pass, and security pass.
 - Performance: No movement-driven React renders; fish geometry reads are throttled and batched; transient values remain in effect-local state and CSS variables.
-- Operability: Bodoni fonts are bundled locally; no external runtime dependency, secret, API, or database is introduced.
+- Operability: Bodoni fonts and the H.264 background video are bundled locally; no external runtime dependency, secret, API, or database is introduced.
 - Accessibility posture: Keyboard, focus, Escape, announcements, touch, modal scrolling, and reduced-motion paths remain intact.
 - Security posture: Read-only and data-free; numeric DOM style updates and local static assets introduce no HTML injection or data boundary.
 - Rollback readiness: The complete validated source and assets are committed as one revision before deployment.
@@ -38,4 +38,4 @@
 - Decision: `approved`
 - Required follow-up: Replace final event details and the real baby portrait when supplied.
 - Residual risks accepted: Tail cadence remains a subjective visual parameter that can be tuned after device feedback; no browser screenshot matrix was explicitly requested.
-- Release notes: Corrected body/hand masking, continuous two-pose tail flap with speed acceleration, realistic triggered fish escape bursts, deeper seabed integration, and unboxed Bodoni-style pearl headline.
+- Release notes: Corrected body/hand masking, continuous two-pose tail flap with speed acceleration, realistic triggered fish escape bursts, deeper seabed integration, unboxed Bodoni-style pearl headline, and a verified full-bleed MP4 background.

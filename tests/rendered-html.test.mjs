@@ -24,6 +24,8 @@ test("server-renders Liliana's invitation shell", async () => {
   assert.match(html, /A little mermaid is turning one/i);
   assert.match(html, /A magical under-the-sea invitation/i);
   assert.match(html, /Open all party details/i);
+  assert.match(html, /<video[^>]*autoplay[^>]*muted[^>]*loop[^>]*playsinline/i);
+  assert.match(html, /<source[^>]*background-main\.mp4[^>]*type="video\/mp4"/i);
   assert.match(html, /property="og:image" content="http:\/\/localhost(?::3000)?\/og\.png"/i);
   assert.match(html, /name="twitter:card" content="summary_large_image"/i);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i);
@@ -47,7 +49,7 @@ test("keeps invitation content, illustrated assets, and face replacement central
   assert.match(objects, /treasure-chest\.png/);
   assert.match(objects, /crab-cute\.png/);
   assert.doesNotMatch(objects, /\bicon\s*:/);
-  await access(new URL("../public/images/underwater/background-main.png", import.meta.url));
+  await access(new URL("../public/images/underwater/background-main.mp4", import.meta.url));
   await access(new URL("../public/images/mermaid/baby-face-placeholder.png", import.meta.url));
   await access(new URL("../public/images/mermaid/baby-mermaid-body.png", import.meta.url));
   await access(new URL("../public/images/mermaid/baby-mermaid-tail.png", import.meta.url));

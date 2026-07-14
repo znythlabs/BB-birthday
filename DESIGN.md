@@ -20,7 +20,7 @@ Interactive labels are not permanently displayed. Each object gets a subtle pear
 
 ### Generated asset system
 
-- `public/images/underwater/background-main.png`: full-bleed environment with open center.
+- `public/images/underwater/background-main.mp4`: full-bleed H.264 environment video with an open center; autoplay muted, looped, inline, and covered edge-to-edge.
 - `public/images/mermaid/baby-mermaid-main.png`: preserved master character art.
 - `public/images/mermaid/baby-mermaid-body.png` and `baby-mermaid-tail.png`: pixel-aligned production layers; the actual baby portrait remains a replaceable identity layer until supplied.
 - `public/images/sea-elements/`: fixed shell, chest, crab, coral, plant, starfish, clam, and rock assets.

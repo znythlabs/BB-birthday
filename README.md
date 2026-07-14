@@ -29,7 +29,7 @@ No component change is required. Use a front-facing PNG with even lighting and v
 
 ## Artwork map
 
-- `public/images/underwater/background-main.png` — wide scene background with an open center swim lane
+- `public/images/underwater/background-main.mp4` — H.264 full-bleed scene video; loaded as a muted, looping, inline background with eager preload
 - `public/images/mermaid/` — preserved master art plus pixel-aligned body, tail, and face layers
 - `public/fonts/` — locally bundled Bodoni Moda headline fonts
 - `public/images/sea-elements/` — transparent interactive shells, coral, chest, crab, starfish, plants, and rocks
