@@ -3,7 +3,7 @@
 ## Metadata
 
 - Project: Liliana's First Birthday interactive invitation
-- Lead Architect: Codex Lead Architect
+- Lead Architect: Primary Codex agent
 - Date: 2026-07-14
 - Status: `approved`
 
@@ -11,34 +11,31 @@
 
 | Input | Present | Notes |
 | --- | --- | --- |
-| Karpathy Skills reflected in all handoffs | Yes | Lead and frontend handoffs use explicit assumptions, simple implementation, surgical scope, and verified criteria. |
-| Awesome Design MD reflected in design-facing handoffs | Yes | `DESIGN.md` and frontend handoff cover hierarchy, tokens, accessibility, responsiveness, components, and handoff rules. |
-| Product Manager handoff | Not applicable | This was not requested as a full-stack autonomous team; the user's supplied brief is the product source of truth. |
-| UI/UX Designer handoff | Not applicable | The supplied artwork plus approved `DESIGN.md` serves as the documented fallback design spec. |
-| Penpot artifact or fallback spec | Yes | `DESIGN.md`; no Penpot claim is made. |
+| Karpathy Skills reflected in handoffs | Yes | Scope, simplicity, surgical changes, and verifiable criteria are recorded. |
+| Awesome Design MD reflected in design-facing handoffs | Yes | `DESIGN.md` and frontend handoff cover hierarchy, composition, assets, accessibility, responsiveness, and implementation mapping. |
+| Product requirements | Yes | The attached premium invitation brief is the product source of truth. |
+| UI/UX design spec | Yes | `DESIGN.md`; no Penpot claim is made. |
 | Frontend Engineer handoff | Yes | `handoffs/frontend-to-lead.md`. |
-| Backend Engineer handoff | Not applicable | No API or server domain logic. |
-| Database Engineer handoff | Not applicable | No database or persistence. |
-| DevOps Engineer handoff | Not applicable | Sites handles hosting; root follows the Sites publishing workflow. |
+| Backend / database inputs | Not applicable | No API, persistence, or server domain feature. |
 | QA review pass | Yes | `reviews/qa-review.md`. |
 | Security review pass | Yes | `reviews/security-review.md`. |
-| Documentation Engineer handoff | Not applicable | Scoped README and replacement instructions were implemented and verified by Frontend Engineer. |
+| Documentation | Yes | `README.md` includes editing, asset, and baby-face replacement instructions. |
 
 ## Architecture Review
 
-- Methodology compliance: Pass. Implementation uses one focused page, centralized content, small reusable components, no speculative service layer, and explicit verification.
-- Architecture decisions: Client-only interaction logic with requestAnimationFrame and refs; CSS ambient effects; static assets; no animation/runtime dependency added; vinext Cloudflare output preserved.
-- Cross-role contract consistency: The frontend matches the product brief and `DESIGN.md`; no backend/database contracts exist.
-- Production readiness: Lint, typecheck, production build, rendered tests, metadata checks, QA, and security gates pass.
-- Operability: Event details and replacement assets have stable documented paths; no environment configuration is required.
-- Rollback readiness: Source will be committed and pushed before the Sites version is saved, providing a precise deployable revision.
-- Accessibility posture: Keyboard/direct activation, focus trap/restoration, Escape, live announcements, reduced motion, 44px controls, and scrollable all-details fallback are present.
-- Security posture: Read-only, no secrets/data collection, no injection surfaces, and private deployment only; one unreachable moderate transitive advisory is documented.
-- Documentation accuracy: README, design spec, handoffs, and review artifacts match the implemented paths and current placeholder-content boundary.
+- Methodology compliance: Pass. The revision stays within the single-page invitation, centralizes editable data, and verifies every requested behavior.
+- Architecture decisions: Static raster asset layers; one client scene controller using requestAnimationFrame/refs; Framer Motion on nested art/UI wrappers; no backend or persistence.
+- Cross-role contract consistency: The implementation, `DESIGN.md`, handoff, README, QA review, and security review describe the same fixed composition and placeholder-content boundary.
+- Production readiness: Clean lint and typecheck, passing vinext production build, 4/4 rendered regression tests, optimized assets, metadata/social card, QA pass, and security pass.
+- Operability: Copy and object geometry use stable config files; image replacement paths are documented; no environment setup is required.
+- Rollback readiness: The validated source revision will be committed before Sites deployment.
+- Accessibility posture: Keyboard/direct activation, focus containment/restoration, Escape, live announcements, reduced motion, 48px controls, and scrollable all-details fallback are present.
+- Security posture: Read-only, no secrets or data collection, no injection surface, and private deployment only; moderate transitive audit note accepted.
+- Documentation accuracy: README and design/review artifacts match the implemented generated-asset paths.
 
 ## Approval Decision
 
 - Decision: `approved`
-- Required follow-up: Replace the placeholder event logistics and baby portrait when the family provides them, then rerun the same build/test gate.
-- Residual risks accepted: No screenshot-based real-device QA; two moderate transitive PostCSS audit findings are unreachable under the static trusted-CSS architecture.
-- Release notes: Interactive underwater first-birthday invitation with pointer/touch mermaid movement, six discoverable details, accessible all-details fallback, generated social card, and private Sites deployment readiness.
+- Required follow-up: Replace placeholder logistics and `/public/images/mermaid/baby-face.png` when the family provides them, then rerun the same verification gate.
+- Residual risks accepted: No browser screenshot matrix; small position tuning may be useful after real-device feedback. Moderate PostCSS advisory is unreachable under trusted static CSS.
+- Release notes: Premium raster-art underwater invitation with pointer/touch mermaid movement, six fixed illustrated discoveries, accessible all-details fallback, generated social card, and private Sites deployment readiness.

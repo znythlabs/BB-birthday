@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+/* eslint-disable @next/next/no-img-element -- small local sprite thumbnails are already optimized */
 import { interactiveObjects } from "@/data/interactiveObjects";
 
 export function PartyDetailsDialog({ onClose }: { onClose: () => void }) {
@@ -38,7 +39,7 @@ export function PartyDetailsDialog({ onClose }: { onClose: () => void }) {
         <dl className="details-list">
           {interactiveObjects.map((object) => (
             <div className="details-list-item" key={object.id}>
-              <span aria-hidden="true">{object.icon}</span>
+              <span className="details-list-art" aria-hidden="true"><img src={object.asset} alt="" /></span>
               <div><dt>{object.label}</dt><dd>{object.value}</dd></div>
             </div>
           ))}

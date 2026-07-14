@@ -1,5 +1,33 @@
 # Liliana's First Birthday — Design System
 
+## Premium illustrated scene direction
+
+The experience is built as one authored storybook composition, never as a collection of icon buttons. Every visible sea creature and interactive object uses a generated raster asset from `public/images/` and shares the same soft 3D watercolor-clay finish, pearlescent highlights, turquoise light, shell pink, lavender, and warm sand.
+
+### Fixed composition map
+
+- Top center, 50% / 8%: compact pearl invitation crest, kept above the swim lane.
+- Center swim lane, 28–72% / 25–66%: intentionally open water for the mermaid and moving fish.
+- Lower left, 13% / 76%: large pearl clam revealing the celebrant.
+- Mid left, 18% / 49%: coral garden revealing the invitation message.
+- Lower middle-left, 38% / 84%: starfish revealing RSVP details.
+- Lower middle-right, 66% / 79%: treasure chest revealing the venue.
+- Mid right, 84% / 53%: tall coral cluster revealing the time.
+- Lower right, 84% / 82%: cute crab revealing the date.
+- Rock and plant clusters frame the lower corners as non-interactive depth layers.
+
+Interactive labels are not permanently displayed. Each object gets a subtle pearl halo, hover/focus cue, and accessible name. Its full label appears inside the themed detail bubble only after proximity or direct activation.
+
+### Generated asset system
+
+- `public/images/underwater/background-main.png`: full-bleed environment with open center.
+- `public/images/mermaid/baby-mermaid-main.png`: primary character; the actual baby portrait remains a replaceable identity layer until supplied.
+- `public/images/sea-elements/`: fixed shell, chest, crab, coral, plant, starfish, clam, and rock assets.
+- `public/images/fish/`: three independently animated fish sprites.
+- `public/images/underwater/bubbles-overlay.png`: generated bubble cluster used as a low-opacity ambient layer.
+
+Do not reintroduce emoji, symbolic icon circles, generic clipart, or always-visible floating pills.
+
 ## Experience
 
 A single-screen magical underwater invitation that behaves like a gentle mini-game. Guests guide a baby mermaid through the scene to discover the celebration details. The supplied underwater artwork is the visual source of truth: bright turquoise water, soft sunbeams, pearl highlights, pastel coral, and a sandy storybook foreground.

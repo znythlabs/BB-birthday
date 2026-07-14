@@ -33,7 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
       description: "A magical under-the-sea birthday invitation.",
       type: "website",
       url: origin,
-      images: [{ url: socialImage, width: 1731, height: 909, alt: "Liliana’s magical underwater first birthday invitation" }],
+      images: [{ url: socialImage, width: 1200, height: 630, alt: "Liliana’s magical underwater first birthday invitation" }],
     },
     twitter: {
       card: "summary_large_image",

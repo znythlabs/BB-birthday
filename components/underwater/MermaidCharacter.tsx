@@ -1,34 +1,39 @@
-import { forwardRef } from "react";
+"use client";
+
+/* eslint-disable @next/next/no-img-element -- layered face masking requires direct image elements */
+
+import { motion } from "framer-motion";
+import { forwardRef, useState } from "react";
+
+const FINAL_FACE_PATH = "/images/mermaid/baby-face.png";
+const PLACEHOLDER_FACE_PATH = "/images/mermaid/baby-face-placeholder.png";
 
 export const MermaidCharacter = forwardRef<HTMLDivElement>(function MermaidCharacter(_, ref) {
+  const [faceSrc, setFaceSrc] = useState(FINAL_FACE_PATH);
+
   return (
     <div ref={ref} className="mermaid-position" aria-hidden="true" data-testid="mermaid">
-      <div className="mermaid-float">
-        <div className="mermaid-hair mermaid-hair-left" />
-        <div className="mermaid-hair mermaid-hair-right" />
-        <div className="mermaid-head">
-          <div className="mermaid-face-placeholder">
-            <span className="face-eye face-eye-left" />
-            <span className="face-eye face-eye-right" />
-            <span className="face-smile" />
-          </div>
-          <div
-            className="mermaid-face-photo"
-            style={{ backgroundImage: "url('/images/mermaid/baby-face.png')" }}
-          />
-          <span className="mermaid-crown">✦</span>
-        </div>
-        <div className="mermaid-body">
-          <span className="mermaid-arm mermaid-arm-left" />
-          <span className="mermaid-arm mermaid-arm-right" />
-          <span className="mermaid-shell mermaid-shell-left" />
-          <span className="mermaid-shell mermaid-shell-right" />
-          <div className="mermaid-tail">
-            <span className="mermaid-fin mermaid-fin-top" />
-            <span className="mermaid-fin mermaid-fin-bottom" />
-          </div>
-        </div>
-      </div>
+      <motion.div
+        className="mermaid-float"
+        animate={{ y: [-4, 5, -4], rotate: [-1.5, 1.5, -1.5] }}
+        transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
+      >
+        <img
+          className="mermaid-art"
+          src="/images/mermaid/baby-mermaid-main.png"
+          alt=""
+          draggable={false}
+        />
+        <img
+          className="mermaid-face-photo"
+          src={faceSrc}
+          alt=""
+          draggable={false}
+          onError={() => {
+            if (faceSrc !== PLACEHOLDER_FACE_PATH) setFaceSrc(PLACEHOLDER_FACE_PATH);
+          }}
+        />
+      </motion.div>
     </div>
   );
 });

@@ -1,26 +1,38 @@
-const bubbles = [[7, 11, 0, 10], [14, 7, 4, 13], [23, 13, 8, 12], [33, 8, 2, 15], [47, 11, 6, 11], [59, 6, 1, 14], [69, 14, 7, 16], [78, 9, 3, 12], [87, 12, 9, 14], [94, 7, 5, 11]] as const;
+"use client";
+
+/* eslint-disable @next/next/no-img-element -- transparent sprite art is pre-sized and animated directly */
+
+import { motion } from "framer-motion";
+
 const fish = [
-  { top: 31, delay: -3, duration: 23, color: "#ffd27f", scale: 0.78 },
-  { top: 52, delay: -14, duration: 29, color: "#c8b6ff", scale: 0.62 },
-  { top: 20, delay: -8, duration: 34, color: "#ff9daf", scale: 0.48 },
+  { src: "/images/fish/fish-1.png", top: "27%", width: 78, duration: 24, delay: -4 },
+  { src: "/images/fish/fish-3.png", top: "59%", width: 62, duration: 31, delay: -16 },
 ] as const;
 
 export function AmbientLayers() {
   return (
     <>
       <div className="sunlight" aria-hidden="true"><span /><span /><span /></div>
-      <div className="ambient-bubbles" aria-hidden="true">
-        {bubbles.map(([left, size, delay, duration], index) => (
-          <span key={index} style={{ left: `${left}%`, width: `${size}px`, height: `${size}px`, animationDelay: `-${delay}s`, animationDuration: `${duration}s` }} />
-        ))}
-      </div>
+      <img className="bubbles-overlay bubbles-overlay-left" src="/images/underwater/bubbles-overlay.png" alt="" aria-hidden="true" />
+      <img className="bubbles-overlay bubbles-overlay-right" src="/images/underwater/bubbles-overlay.png" alt="" aria-hidden="true" />
       <div className="ambient-fish" aria-hidden="true">
-        {fish.map((item, index) => (
-          <span className="ambient-fish-item" key={index} style={{ top: `${item.top}%`, color: item.color, animationDelay: `${item.delay}s`, animationDuration: `${item.duration}s`, transform: `scale(${item.scale})` }}><i /></span>
+        {fish.map((item) => (
+          <motion.img
+            key={item.src}
+            className="ambient-fish-item"
+            src={item.src}
+            alt=""
+            style={{ top: item.top, width: item.width }}
+            initial={{ x: "-14vw" }}
+            animate={{ x: "114vw", y: [0, -13, 7, 0] }}
+            transition={{
+              x: { duration: item.duration, delay: item.delay, repeat: Infinity, ease: "linear" },
+              y: { duration: 5.5, repeat: Infinity, ease: "easeInOut" },
+            }}
+          />
         ))}
       </div>
       <div className="water-vignette" aria-hidden="true" />
     </>
   );
 }
-

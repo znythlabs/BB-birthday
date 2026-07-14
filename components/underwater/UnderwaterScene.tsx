@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- generated transparent scene layers use direct responsive sizing */
+
 import { type PointerEvent as ReactPointerEvent, useCallback, useEffect, useRef, useState } from "react";
 import { eventDetails } from "@/data/eventDetails";
 import { interactiveObjects, type InteractiveSeaObjectData } from "@/data/interactiveObjects";
@@ -209,13 +211,23 @@ export function UnderwaterScene() {
       <div className="underwater-background" aria-hidden="true" />
       <AmbientLayers />
 
+      <div className="scene-frame" aria-hidden="true">
+        <img className="frame-art frame-plant-left" src="/images/sea-elements/sea-plant.png" alt="" />
+        <img className="frame-art frame-rock-left" src="/images/sea-elements/rock-cluster.png" alt="" />
+        <img className="frame-art frame-clam-right" src="/images/sea-elements/pearl-clam.png" alt="" />
+        <img className="frame-art frame-plant-right" src="/images/sea-elements/sea-plant.png" alt="" />
+      </div>
+
       <header className="title-bubble">
         <p className="title-eyebrow">{eventDetails.eyebrow}</p>
         <h1>{eventDetails.celebrantName}</h1>
-        <p className="title-subtitle">Swim around to discover the party details.</p>
+        <p className="title-subtitle">Swim through the shimmer to reveal her party treasures.</p>
       </header>
 
-      <div className="interaction-hint" data-hidden={hasMoved || undefined}><span aria-hidden="true">↗</span><span>Move, tap, or drag to swim</span></div>
+      <div className="interaction-hint" data-hidden={hasMoved || undefined}>
+        <span className="hint-shimmer" aria-hidden="true" />
+        <span>Move, tap, or drag to guide Liliana</span>
+      </div>
 
       <div className="sea-object-layer">
         {interactiveObjects.map((object) => (
@@ -226,7 +238,10 @@ export function UnderwaterScene() {
       <MermaidCharacter ref={mermaidRef} />
       {activeObject ? <BubbleMessage object={activeObject} onClose={closeActiveDetail} /> : null}
 
-      <button type="button" className="all-details-button" onClick={openAllDetails}><span aria-hidden="true">✦</span>Open party details</button>
+      <button type="button" className="all-details-button" onClick={openAllDetails}>
+        <span className="button-pearl" aria-hidden="true" />
+        Open all party details
+      </button>
       {showAllDetails ? <PartyDetailsDialog onClose={closeAllDetails} /> : null}
 
       <p className="sr-only" aria-live="polite" aria-atomic="true">

@@ -12,4 +12,3 @@ export const eventDetails = {
   rsvp: "RSVP details coming soon",
   invitationMessage: "Come swim, sparkle, and celebrate with us!",
 } as const;
-
