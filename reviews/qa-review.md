@@ -9,9 +9,9 @@
 
 ## Scope Reviewed
 
-- Methodology references: Karpathy Skills goal-driven verification; Awesome Design MD hierarchy, cohesion, accessibility, responsiveness, and interface-polish criteria; project `DESIGN.md`.
-- Product acceptance criteria: Fullscreen premium underwater scene; real raster artwork; no emoji/icon circles/permanent pills; mermaid pointer/touch/tap movement; six proximity/direct details; editable config; reduced motion; README.
-- UI/UX requirements: Fixed edge composition with open center lane, coordinated dimensional art, layered baby face, visible focus states, non-game fallback, responsive geometry, modal behavior.
+- Methodology references: Karpathy Skills verification; Awesome Design MD motion, hierarchy, environmental integration, accessibility, and responsive criteria; project `DESIGN.md`.
+- Product acceptance criteria: Exactly two tail poses; speed-reactive cadence; grounded sea objects; no hollow ring bubbles; improved title/detail cards; opaque reactive fish.
+- UI/UX requirements: Stable mermaid body/face, natural motion response, fixed readable details, accessible fallback, reduced motion.
 - API/database behavior: Not applicable.
 - Deployment/runtime behavior: vinext production build and rendered Worker response.
 
@@ -20,26 +20,28 @@
 | Area | Test Type | Command or Method | Result | Notes |
 | --- | --- | --- | --- | --- |
 | Unit | Automated | `node --test tests/rendered-html.test.mjs` via `npm test` | Pass | 4/4 tests pass. |
-| Integration | Automated | `npm test` | Pass | Full vinext build plus rendered-worker checks. |
-| Accessibility | Source/automated | Component/CSS review and regression assertions | Pass | Buttons, labels, focus trap/restoration, Escape, reduced motion, 48px controls, all-details fallback. |
-| Visual/design fidelity | Manual/source | Transparent-asset contact sheet, mermaid inspection, social-card inspection, composition/CSS review | Pass | Cohesive premium raster set; fixed edge composition; center lane remains open; no emoji or permanent floating labels. |
-| Performance | Source/build | PNG dimension optimization and animation-loop review | Pass | Sprites resized/compressed, one ref-based rAF movement loop, hidden-tab pause, bounded Framer Motion loops. |
-| Regression | Automated | `npm run lint`, `npm run typecheck`, `npm test` | Pass | Clean lint/typecheck/build; metadata, asset, motion, and modal touch regressions covered. |
+| Integration | Automated | `npm test` | Pass | Full production build plus rendered-worker checks. |
+| Tail motion | Source/automated | Tail-frame assertions and controller review | Pass | Exactly two dataset states; cadence derives from pointer/travel energy; idle and reduced-motion return to frame 0. |
+| Fish reaction | Source/automated | Flee-marker assertions and animation review | Pass | Three fish use throttled proximity vectors, batched reads/writes, opaque rendering, and no React frame state. |
+| Environmental integration | Manual/source | Position, shadow, and motion-rule review | Pass | Coral lowered into reef; grounded objects have contact shadows and no bobbing. |
+| Visual hierarchy | Manual/source | Title/detail CSS review | Pass | Compact shell plaque and smaller structured pearl cards replace oversized oval surfaces. |
+| Accessibility | Source/automated | Existing interaction regression suite | Pass | Keyboard buttons, focus, modal, Escape, announcements, touch, and reduced-motion paths preserved. |
+| Regression | Automated | `npm run lint`, `npm run typecheck`, `npm test`, `git diff --check` | Pass | Clean source and production build. |
 
 ## Defects
 
 | Severity | Owner | Repro Steps | Expected | Actual | Status |
 | --- | --- | --- | --- | --- | --- |
-| Medium | Frontend | Inspect generated mermaid alpha on dark matte | No chroma spill or enclosed transparency holes | Minor key fringe and scale holes remained after first matte pass | Fixed by targeted alpha cleanup and verified |
-| Medium | Frontend | Animate positioned discovery/popup with Framer Motion transforms | Percentage anchors remain centered | Direct motion transforms could override CSS anchor transforms | Fixed with nested motion wrappers and typechecked |
+| Medium | Frontend | Swap a generated alternate full-body sprite | Tail changes while body/face remain aligned | Generated edit changed body geometry | Rejected; implemented clipped tail-only layers |
+| Low | QA | Run first updated regression suite | Image assertion accepts formatted multiline JSX | Assertion expected a same-line class attribute | Fixed and rerun |
 
 ## Coverage Gaps
 
-- Screenshot-based multi-viewport browser QA was not run; the Sites flow did not request browser inspection. Responsive source rules, rendered output, and asset inspections cover the release boundary.
-- Final family content and real baby portrait cannot be acceptance-tested until supplied.
+- Browser screenshot/interaction QA was not explicitly requested; visual checks use supplied screenshots plus source/artifact inspection per Sites workflow.
+- Final family content and real baby portrait remain outside current acceptance scope.
 
 ## Release Recommendation
 
 - Recommendation: `pass`
 - Required fixes before release: None.
-- Residual risk: Unusual device aspect ratios may require small positional tuning after real-device feedback; the all-details fallback remains fully accessible.
+- Residual risk: Tail angle/cadence may benefit from subjective tuning after the family tests it on their preferred device.

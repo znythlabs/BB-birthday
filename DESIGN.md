@@ -9,10 +9,10 @@ The experience is built as one authored storybook composition, never as a collec
 - Top center, 50% / 8%: compact pearl invitation crest, kept above the swim lane.
 - Center swim lane, 28–72% / 25–66%: intentionally open water for the mermaid and moving fish.
 - Lower left, 13% / 76%: large pearl clam revealing the celebrant.
-- Mid left, 18% / 49%: coral garden revealing the invitation message.
+- Mid left, 18% / 47%: reactive aqua fish revealing the invitation message.
 - Lower middle-left, 38% / 84%: starfish revealing RSVP details.
 - Lower middle-right, 66% / 79%: treasure chest revealing the venue.
-- Mid right, 84% / 53%: tall coral cluster revealing the time.
+- Lower right reef, 85% / 67%: tall coral cluster rooted among the background plants and revealing the time.
 - Lower right, 84% / 82%: cute crab revealing the date.
 - Rock and plant clusters frame the lower corners as non-interactive depth layers.
 
@@ -24,7 +24,10 @@ Interactive labels are not permanently displayed. Each object gets a subtle pear
 - `public/images/mermaid/baby-mermaid-main.png`: primary character; the actual baby portrait remains a replaceable identity layer until supplied.
 - `public/images/sea-elements/`: fixed shell, chest, crab, coral, plant, starfish, clam, and rock assets.
 - `public/images/fish/`: three independently animated fish sprites.
-- `public/images/underwater/bubbles-overlay.png`: generated bubble cluster used as a low-opacity ambient layer.
+
+The mermaid uses exactly two tail poses. Only the clipped tail layer changes pose; its toggle cadence is driven by live swim energy so the face and torso never jitter. Fish remain opaque and calculate a short flee vector when Liliana enters their reaction radius. Shell, starfish, coral, chest, and crab sit low in the reef with contact shadows and do not bob like open-water creatures.
+
+Decorative hollow ring overlays are prohibited. Retain only the background artwork’s small natural pearl bubbles.
 
 Do not reintroduce emoji, symbolic icon circles, generic clipart, or always-visible floating pills.
 
@@ -35,9 +38,9 @@ A single-screen magical underwater invitation that behaves like a gentle mini-ga
 ## Visual hierarchy
 
 1. The baby mermaid is the moving focal point and must remain visible above ambient effects.
-2. A compact pearl-glass title bubble introduces the invitation without obscuring the open center of the artwork.
+2. A compact pearlescent shell plaque introduces the invitation without obscuring the open center of the artwork.
 3. Six interactive sea objects sit around the quieter edges and seabed. Each must have a visible label or hint so discovery never becomes guesswork.
-4. Only one story bubble is open at a time. Its heading, value, and close behavior must be immediately readable.
+4. Only one structured pearl detail card is open at a time. Its pearl kicker, restrained heading, value, and close behavior must be immediately readable.
 
 ## Tokens
 

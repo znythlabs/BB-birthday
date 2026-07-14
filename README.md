@@ -30,7 +30,6 @@ No component change is required. Use a front-facing PNG with even lighting and v
 ## Artwork map
 
 - `public/images/underwater/background-main.png` — wide scene background with an open center swim lane
-- `public/images/underwater/bubbles-overlay.png` — transparent ambient bubbles
 - `public/images/mermaid/` — mermaid body and face layers
 - `public/images/sea-elements/` — transparent interactive shells, coral, chest, crab, starfish, plants, and rocks
 - `public/images/fish/` — transparent interactive and ambient fish
@@ -41,12 +40,15 @@ All illustrated scene assets were made as a coordinated raster set. Keep the sam
 ## Interaction and accessibility
 
 - Pointer movement, touch dragging, and tap-to-swim share the same smoothed movement target.
+- A two-pose tail-only flap accelerates and slows with Liliana’s swim speed without moving her face or body between frames.
+- Ambient and message fish render at full visual weight and dart away when Liliana approaches.
 - Swimming near an illustrated object reveals its detail; selecting it opens the same detail directly.
+- Grounded objects sit lower in the reef with contact shadows and no idle floating; only swimming fish drift through open water.
 - Objects keep the center swim lane open and only reveal discovery text on hover, focus, or activation.
 - “Open all party details” provides a complete non-game fallback.
 - Escape closes an open detail or dialog, and focus stays trapped inside the modal while open.
 - Focus rings, button semantics, polite announcements, and 48px-or-larger controls support keyboard and assistive-technology users.
-- Reduced-motion preferences remove continuous motion and make mermaid movement immediate.
+- Reduced-motion preferences remove continuous motion, tail flapping, and fish loops while making mermaid movement immediate.
 - Animation pauses while the browser tab is hidden.
 
 No API, database, authentication, or runtime secrets are required.

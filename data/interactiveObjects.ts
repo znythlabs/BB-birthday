@@ -73,7 +73,7 @@ export const interactiveObjects: readonly InteractiveSeaObjectData[] = [
     id: "time",
     kind: "coral",
     x: 85,
-    y: 52,
+    y: 67,
     radius: 124,
     width: 142,
     label: "Party time",

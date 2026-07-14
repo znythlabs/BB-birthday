@@ -14,6 +14,7 @@
 - Actors: Privately invited read-only visitors and the site owner editing local content.
 - Trust boundaries: Incoming host/proxy headers used only for absolute social metadata URLs; static client interaction state; private Sites deployment boundary.
 - Entry points: Root page request plus pointer, touch, keyboard, and focus events.
+- Client motion inputs: Pointer coordinates are used only for in-memory transforms and clamped CSS custom properties; no value is persisted, logged, or inserted as HTML.
 - Sensitive data: None. No account, form, analytics, user submission, secret, or runtime credential is used by the application.
 - Abuse cases: Malformed host headers, script injection through content, dependency vulnerabilities, accidental credential inclusion, unintended shared deployment.
 
@@ -26,6 +27,7 @@
 | Input validation | Pass | No user content input. Host/protocol metadata input is constrained, parsed by `URL`, and has a safe fallback. |
 | Output encoding | Pass | React-rendered static strings; no raw HTML path. |
 | Injection risks | Pass | No `dangerouslySetInnerHTML`, `eval`, dynamic function construction, database query, shell call, or external request in app code. |
+| Motion/style mutation | Pass | Numeric flee and tail values are computed internally, bounded with `clamp`, and written through DOM style APIs rather than string-parsed markup. |
 | CSRF/CORS/session handling | Not applicable | No mutation endpoint, cookies, or session. |
 | Dependency risk | Pass with note | Production audit reports two moderate PostCSS advisories through Next; no high/critical finding. The vulnerable stringify path receives trusted static CSS only. |
 | Logging and telemetry exposure | Pass | No application telemetry or personal-data logging. |

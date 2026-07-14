@@ -97,23 +97,29 @@ button { color: inherit; }
 .sunlight span:nth-child(2) { left: 48%; width: 20%; animation-delay: -4s; }
 .sunlight span:nth-child(3) { right: 17%; transform: rotate(-15deg); animation-delay: -7s; }
 
-.bubbles-overlay {
-  position: absolute;
-  z-index: 2;
-  width: min(20vw, 270px);
-  height: 80%;
-  object-fit: contain;
-  opacity: 0.38;
-  pointer-events: none;
-  filter: brightness(1.12);
-  animation: bubbles-drift 8s ease-in-out infinite alternate;
-}
-
-.bubbles-overlay-left { left: 3%; bottom: -13%; }
-.bubbles-overlay-right { right: 4%; top: 1%; transform: scaleX(-1); animation-delay: -4s; }
-
 .ambient-fish { position: absolute; z-index: 3; inset: 0; overflow: hidden; pointer-events: none; }
-.ambient-fish-item { position: absolute; left: 0; height: auto; opacity: 0.5; filter: drop-shadow(0 7px 8px rgba(4, 79, 99, 0.16)); }
+.ambient-fish-track {
+  --fish-duration: 28s;
+  --fish-delay: 0s;
+  position: absolute;
+  left: 0;
+  display: block;
+  animation: fish-cross var(--fish-duration) linear var(--fish-delay) infinite;
+  will-change: transform;
+}
+.ambient-fish-item {
+  --flee-x: 0px;
+  --flee-y: 0px;
+  --flee-flip: 1;
+  --flee-energy: 0;
+  display: block;
+  height: auto;
+  opacity: 0.94;
+  filter: saturate(1.08) contrast(1.03) drop-shadow(0 7px 8px rgba(4, 79, 99, 0.2));
+  transform: translate3d(var(--flee-x), var(--flee-y), 0) scaleX(var(--flee-flip)) rotate(calc(var(--flee-energy) * -5deg));
+  transition: transform 130ms cubic-bezier(0.2, 0.8, 0.3, 1), filter 160ms ease;
+  will-change: transform;
+}
 
 .scene-frame { position: absolute; z-index: 5; inset: 0; pointer-events: none; }
 .frame-art { position: absolute; height: auto; object-fit: contain; filter: drop-shadow(0 12px 16px rgba(3, 70, 88, 0.2)); }
@@ -127,30 +133,42 @@ button { color: inherit; }
   z-index: 35;
   top: max(18px, env(safe-area-inset-top));
   left: 50%;
-  width: min(520px, calc(100% - 34px));
-  padding: 13px 34px 16px;
+  width: min(470px, calc(100% - 34px));
+  padding: 15px 34px 18px;
   transform: translateX(-50%);
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  border-radius: 58% 42% 54% 46% / 46% 52% 48% 54%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: 38px 38px 58px 58px / 32px 32px 44px 44px;
   background:
-    radial-gradient(circle at 24% 8%, rgba(255,255,255,0.96), transparent 34%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(245, 255, 253, 0.73));
-  box-shadow: 0 18px 50px rgba(0, 84, 109, 0.2), inset 0 1px 0 white;
+    radial-gradient(circle at 50% 120%, rgba(255, 217, 232, 0.42), transparent 48%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.91), rgba(231, 252, 250, 0.74));
+  box-shadow: 0 17px 46px rgba(0, 84, 109, 0.19), inset 0 1px 0 white, inset 0 -9px 24px rgba(139, 225, 226, 0.11);
   text-align: center;
   backdrop-filter: blur(15px) saturate(1.15);
   cursor: default;
 }
 
-.title-bubble::before,
+.title-bubble::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 18% 2% -58%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 258deg at 50% 100%, transparent 0 11deg, rgba(255,255,255,0.58) 12deg, transparent 13deg 23deg);
+  opacity: 0.34;
+}
 .title-bubble::after {
   content: "";
   position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 8px;
+  height: 8px;
+  transform: translateX(-50%);
   border-radius: 50%;
-  background: rgba(255,255,255,0.68);
-  box-shadow: inset -2px -3px 7px rgba(82, 179, 193, 0.12);
+  background: radial-gradient(circle at 32% 26%, white, #ffdce8 60%, #b6e8e8);
+  box-shadow: 0 1px 5px rgba(5, 82, 103, 0.2);
 }
-.title-bubble::before { width: 14px; height: 14px; right: 8%; bottom: -12px; }
-.title-bubble::after { width: 7px; height: 7px; right: 4%; bottom: -24px; }
 
 .title-eyebrow, .title-subtitle { margin: 0; }
 .title-eyebrow {
@@ -219,6 +237,20 @@ button { color: inherit; }
   -webkit-tap-highlight-color: transparent;
 }
 
+.sea-object[data-grounded]::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 14%;
+  right: 14%;
+  bottom: 3%;
+  height: 16%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(3, 76, 92, 0.35), rgba(3, 76, 92, 0.12) 52%, transparent 74%);
+  filter: blur(4px);
+  transform: scaleY(0.58);
+}
+
 .sea-object-motion {
   position: relative;
   display: grid;
@@ -240,6 +272,10 @@ button { color: inherit; }
 .sea-object:focus-visible { outline: 3px solid white; outline-offset: 7px; border-radius: 45%; }
 
 .sea-object-art {
+  --flee-x: 0px;
+  --flee-y: 0px;
+  --flee-flip: 1;
+  --flee-energy: 0;
   position: relative;
   z-index: 2;
   display: block;
@@ -248,9 +284,19 @@ button { color: inherit; }
   max-height: 170px;
   object-fit: contain;
   filter: drop-shadow(0 12px 10px rgba(3, 75, 94, 0.2));
-  animation: object-drift 4.1s ease-in-out infinite;
+  transform-origin: center bottom;
 }
-.sea-object:nth-child(even) .sea-object-art { animation-delay: -2s; }
+.sea-object-fish .sea-object-art {
+  animation: object-drift 3.8s ease-in-out infinite;
+  transform: translate3d(var(--flee-x), var(--flee-y), 0) scaleX(var(--flee-flip)) rotate(calc(var(--flee-energy) * -6deg));
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.3, 1);
+  filter: saturate(1.12) contrast(1.04) drop-shadow(0 10px 9px rgba(3, 75, 94, 0.22));
+}
+.sea-object-coral .sea-object-art { transform: translateY(5%); }
+.sea-object-shell .sea-object-art,
+.sea-object-treasure .sea-object-art,
+.sea-object-starfish .sea-object-art,
+.sea-object-crab .sea-object-art { transform: translateY(7%); }
 .sea-object-glow {
   position: absolute;
   z-index: 1;
@@ -294,7 +340,18 @@ button { color: inherit; }
   transform-origin: center;
 }
 .mermaid-float { position: relative; width: 100%; height: 100%; filter: drop-shadow(0 17px 15px rgba(3, 70, 90, 0.23)); }
-.mermaid-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.mermaid-body-art,
+.mermaid-tail-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.mermaid-body-art { z-index: 1; clip-path: polygon(39% 0, 100% 0, 100% 100%, 34% 100%, 35% 76%, 40% 61%); }
+.mermaid-tail-art {
+  z-index: 0;
+  clip-path: polygon(0 0, 48% 0, 49% 58%, 44% 76%, 40% 100%, 0 100%);
+  transform-origin: 42% 70%;
+  transform: rotate(-5deg) scaleY(1.015);
+  transition: transform 150ms cubic-bezier(0.45, 0, 0.55, 1);
+  will-change: transform;
+}
+.mermaid-position[data-tail-frame="1"] .mermaid-tail-art { transform: rotate(8deg) scaleY(0.94) scaleX(1.018); }
 .mermaid-face-photo {
   position: absolute;
   z-index: 2;
@@ -321,16 +378,27 @@ button { color: inherit; }
 .bubble-message-card {
   position: relative;
   width: 100%;
-  min-height: 106px;
-  padding: 19px 46px 18px 22px;
-  border: 1px solid rgba(255,255,255,0.94);
-  border-radius: 44% 56% 48% 52% / 52% 45% 55% 48%;
+  min-height: 102px;
+  padding: 18px 48px 18px 22px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.9);
+  border-radius: 28px 32px 30px 18px;
   background:
-    radial-gradient(circle at 25% 12%, white, transparent 32%),
-    linear-gradient(145deg, rgba(255,255,255,0.96), rgba(246,255,252,0.84));
-  box-shadow: var(--ocean-shadow), inset 0 1px 0 white;
+    radial-gradient(circle at 10% 8%, rgba(255,255,255,0.98), transparent 32%),
+    linear-gradient(145deg, rgba(251,255,254,0.95), rgba(224,248,247,0.89));
+  box-shadow: 0 18px 45px rgba(3, 71, 91, 0.24), inset 0 1px 0 white, inset 0 -7px 18px rgba(99, 202, 211, 0.1);
   cursor: default;
   backdrop-filter: blur(15px) saturate(1.1);
+}
+.bubble-message-card::before {
+  content: "";
+  position: absolute;
+  inset: auto -20% -70% 36%;
+  height: 120%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from 250deg at 50% 100%, transparent 0 13deg, rgba(255,255,255,0.52) 14deg, transparent 15deg 27deg);
+  opacity: 0.32;
+  pointer-events: none;
 }
 .bubble-anchor-left { transform: translate(18px, -50%); transform-origin: left center; }
 .bubble-anchor-right { transform: translate(calc(-100% - 18px), -50%); transform-origin: right center; }
@@ -338,8 +406,9 @@ button { color: inherit; }
 .bubble-anchor-center.bubble-anchor-below { transform: translate(-50%, 70px); transform-origin: center top; }
 .bubble-anchor-left.bubble-anchor-above,
 .bubble-anchor-right.bubble-anchor-above { margin-top: -80px; }
-.bubble-kicker { margin: 0 0 4px; color: #168097; font-size: 0.69rem; font-weight: 900; letter-spacing: 0.13em; text-transform: uppercase; }
-.bubble-value { margin: 0; color: var(--ocean-ink); font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.14rem, 2.2vw, 1.48rem); font-weight: 700; line-height: 1.25; }
+.bubble-kicker { position: relative; margin: 0 0 6px; padding-left: 15px; color: #16778c; font-size: 0.66rem; font-weight: 900; letter-spacing: 0.15em; text-transform: uppercase; }
+.bubble-kicker::before { content: ""; position: absolute; left: 0; top: 50%; width: 8px; height: 8px; transform: translateY(-50%); border-radius: 50%; background: radial-gradient(circle at 30% 25%, white, #ffccd9 62%, #a7dedf); box-shadow: 0 1px 4px rgba(4, 82, 102, 0.18); }
+.bubble-value { position: relative; margin: 0; max-width: 250px; color: var(--ocean-ink); font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.08rem, 2vw, 1.34rem); font-weight: 700; line-height: 1.22; }
 .bubble-close, .details-dialog-close {
   display: grid;
   place-items: center;
@@ -357,7 +426,7 @@ button { color: inherit; }
 .bubble-close { position: absolute; top: 12px; right: 12px; }
 .bubble-close:hover, .details-dialog-close:hover { background: #bdf7f4; }
 .bubble-close:focus-visible, .details-dialog-close:focus-visible, .all-details-button:focus-visible { outline: 3px solid white; outline-offset: 3px; box-shadow: 0 0 0 6px var(--ocean-deep); }
-.bubble-tail { position: absolute; bottom: -10px; left: 50%; width: 22px; height: 22px; border-right: 1px solid rgba(255,255,255,0.85); border-bottom: 1px solid rgba(255,255,255,0.85); background: rgba(248,255,253,0.9); transform: translateX(-50%) rotate(45deg); }
+.bubble-tail { display: none; }
 
 .all-details-button {
   position: absolute;
@@ -425,7 +494,7 @@ button { color: inherit; }
 .details-list dd { margin: 2px 0 0; color: var(--ocean-ink); font-size: 0.94rem; font-weight: 760; line-height: 1.28; }
 
 @keyframes ray-drift { from { scale: 0.9 1; opacity: 0.52; } to { scale: 1.14 1; opacity: 0.9; } }
-@keyframes bubbles-drift { from { translate: 0 8px; opacity: 0.28; } to { translate: 8px -12px; opacity: 0.47; } }
+@keyframes fish-cross { from { transform: translate3d(-14vw, 0, 0); } to { transform: translate3d(116vw, 0, 0); } }
 @keyframes shimmer-line { 0%,100% { opacity: 0.4; transform: scaleX(0.72); } 50% { opacity: 1; transform: scaleX(1.12); } }
 @keyframes object-drift { 0%,100% { translate: 0 0; rotate: -1.6deg; } 50% { translate: 0 -5px; rotate: 1.6deg; } }
 @keyframes discover-pulse { 0% { transform: scale(0.7); opacity: 0.58; } 72%,100% { transform: scale(1.28); opacity: 0; } }
@@ -448,7 +517,7 @@ button { color: inherit; }
   .sea-object-fish { left: 17% !important; top: 43% !important; }
   .sea-object-starfish { left: 38% !important; top: 83% !important; }
   .sea-object-treasure { left: 65% !important; top: 74% !important; }
-  .sea-object-coral { left: 84% !important; top: 47% !important; }
+  .sea-object-coral { left: 84% !important; top: 64% !important; }
   .sea-object-crab { left: 85% !important; top: 81% !important; }
   .mermaid-position { width: clamp(170px, 42vw, 220px); }
   .bubble-message { position: fixed; top: auto !important; right: 14px; bottom: max(72px, calc(env(safe-area-inset-bottom) + 62px)); left: 14px !important; width: auto; min-height: 96px; transform: none !important; margin: 0 !important; border-radius: 28px 34px 30px 36px; }
@@ -472,5 +541,5 @@ button { color: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
-  .ambient-fish-item:not(:first-child), .sunlight span:not(:first-child), .bubbles-overlay-right { display: none; }
+  .ambient-fish-track:nth-child(n + 2), .sunlight span:not(:first-child) { display: none; }
 }

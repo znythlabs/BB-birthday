@@ -28,6 +28,7 @@ export function UnderwaterScene() {
   const pinnedIdRef = useRef<string | null>(null);
   const dismissedIdRef = useRef<string | null>(null);
   const reducedMotionRef = useRef(false);
+  const pointerMotionRef = useRef({ x: 0, y: 0, time: 0, speed: 0 });
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [showAllDetails, setShowAllDetails] = useState(false);
@@ -52,8 +53,20 @@ export function UnderwaterScene() {
 
   const moveTargetFromPointer = useCallback((event: ReactPointerEvent<HTMLElement>) => {
     const bounds = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - bounds.left;
+    const y = event.clientY - bounds.top;
+    const now = performance.now();
+    const previous = pointerMotionRef.current;
+    if (previous.time > 0) {
+      const elapsed = Math.max(8, now - previous.time);
+      const sampledSpeed = Math.hypot(x - previous.x, y - previous.y) / elapsed;
+      previous.speed = previous.speed * 0.58 + sampledSpeed * 0.42;
+    }
+    previous.x = x;
+    previous.y = y;
+    previous.time = now;
     pinnedIdRef.current = null;
-    setTargetPoint(event.clientX - bounds.left, event.clientY - bounds.top);
+    setTargetPoint(x, y);
   }, [setTargetPoint]);
 
   const activateObject = useCallback((object: InteractiveSeaObjectData) => {
@@ -117,19 +130,62 @@ export function UnderwaterScene() {
     resizeObserver.observe(scene);
 
     let running = true;
-    const renderFrame = () => {
+    let tailFrame = 0;
+    let lastTailToggle = 0;
+    let fleeFrame = 0;
+    const fleeingFish = Array.from(scene.querySelectorAll<HTMLElement>("[data-flee-fish]"));
+    const updateFleeingFish = (current: Point) => {
+      const sceneBounds = scene.getBoundingClientRect();
+      const measurements = fleeingFish.map((fish) => {
+        const bounds = fish.getBoundingClientRect();
+        const fishX = bounds.left - sceneBounds.left + bounds.width / 2;
+        const fishY = bounds.top - sceneBounds.top + bounds.height / 2;
+        const awayX = fishX - current.x;
+        const awayY = fishY - current.y;
+        const distance = Math.max(1, Math.hypot(awayX, awayY));
+        const strength = clamp((230 - distance) / 230, 0, 1);
+        const burst = strength * 132;
+        return { fish, awayX, awayY, distance, strength, burst };
+      });
+      for (const { fish, awayX, awayY, distance, strength, burst } of measurements) {
+        fish.style.setProperty("--flee-x", `${(awayX / distance) * burst}px`);
+        fish.style.setProperty("--flee-y", `${(awayY / distance) * burst * 0.68}px`);
+        fish.style.setProperty("--flee-flip", awayX < 0 ? "-1" : "1");
+        fish.style.setProperty("--flee-energy", `${strength}`);
+      }
+    };
+
+    const renderFrame = (now: number) => {
       if (!running) return;
       const current = currentRef.current;
       const target = targetRef.current;
       const dx = target.x - current.x;
       const dy = target.y - current.y;
       const easing = reducedMotionRef.current ? 1 : 0.075;
+      const travelSpeed = Math.hypot(dx, dy) * easing;
       current.x += dx * easing;
       current.y += dy * easing;
+
+      pointerMotionRef.current.speed *= 0.93;
+      const swimEnergy = reducedMotionRef.current
+        ? 0
+        : clamp(Math.max(pointerMotionRef.current.speed / 1.35, travelSpeed / 17), 0, 1);
+      const flapInterval = 560 - swimEnergy * 430;
+      if (swimEnergy > 0.055 && now - lastTailToggle >= flapInterval) {
+        tailFrame = tailFrame === 0 ? 1 : 0;
+        lastTailToggle = now;
+      } else if (swimEnergy <= 0.055) {
+        tailFrame = 0;
+      }
+      mermaid.dataset.tailFrame = `${tailFrame}`;
+      mermaid.style.setProperty("--swim-energy", `${swimEnergy}`);
 
       const flip = dx < -0.4 ? -1 : 1;
       const tilt = reducedMotionRef.current ? 0 : clamp(dy * 0.045, -10, 10);
       mermaid.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) translate(-50%, -50%) rotate(${tilt}deg) scaleX(${flip})`;
+
+      fleeFrame = (fleeFrame + 1) % 6;
+      if (fleeFrame === 0) updateFleeingFish(current);
 
       const { width, height } = sizeRef.current;
       if (width && height && !pinnedIdRef.current) {

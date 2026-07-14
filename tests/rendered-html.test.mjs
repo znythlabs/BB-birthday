@@ -51,19 +51,27 @@ test("keeps invitation content, illustrated assets, and face replacement central
   await access(new URL("../public/images/mermaid/baby-face-placeholder.png", import.meta.url));
 });
 
-test("uses Framer Motion and raster artwork instead of emoji icon circles", async () => {
-  const [packageJson, objectComponent, ambient, css] = await Promise.all([
+test("uses raster artwork, reactive fish, and a two-frame tail instead of icon circles", async () => {
+  const [packageJson, objectComponent, ambient, mermaid, scene, css] = await Promise.all([
     readFile(new URL("../package.json", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/InteractiveSeaObject.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/AmbientLayers.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/underwater/MermaidCharacter.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
   assert.match(packageJson, /"framer-motion"/);
-  assert.match(objectComponent, /<img className="sea-object-art"/);
-  assert.match(ambient, /motion\.img/);
+  assert.match(objectComponent, /<img\s+className="sea-object-art"/);
+  assert.match(ambient, /data-flee-fish/);
+  assert.match(scene, /dataset\.tailFrame/);
+  assert.match(scene, /--flee-x/);
+  assert.match(mermaid, /mermaid-tail-art/);
+  assert.match(css, /data-tail-frame="1"/);
   assert.doesNotMatch(css, /\.sea-object-icon/);
   assert.doesNotMatch(css, /\.ambient-fish-item::before/);
+  assert.doesNotMatch(ambient, /bubbles-overlay/);
+  assert.doesNotMatch(css, /\.bubbles-overlay/);
 });
 
 test("gates scene dragging and allows vertical modal touch scrolling", async () => {

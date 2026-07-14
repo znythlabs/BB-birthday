@@ -11,31 +11,30 @@
 
 | Input | Present | Notes |
 | --- | --- | --- |
-| Karpathy Skills reflected in handoffs | Yes | Scope, simplicity, surgical changes, and verifiable criteria are recorded. |
-| Awesome Design MD reflected in design-facing handoffs | Yes | `DESIGN.md` and frontend handoff cover hierarchy, composition, assets, accessibility, responsiveness, and implementation mapping. |
-| Product requirements | Yes | The attached premium invitation brief is the product source of truth. |
-| UI/UX design spec | Yes | `DESIGN.md`; no Penpot claim is made. |
+| Karpathy Skills reflected in handoff | Yes | The revision preserves the working scene controller and changes only requested motion/visual layers. |
+| Awesome Design MD reflected in design work | Yes | Motion meaning, environmental grounding, hierarchy, accessibility, and responsive rules are documented. |
+| Product requirements | Yes | User screenshots and written refinements are the source of truth. |
+| UI/UX design spec | Yes | Updated `DESIGN.md`; no Penpot claim is made. |
 | Frontend Engineer handoff | Yes | `handoffs/frontend-to-lead.md`. |
-| Backend / database inputs | Not applicable | No API, persistence, or server domain feature. |
-| QA review pass | Yes | `reviews/qa-review.md`. |
-| Security review pass | Yes | `reviews/security-review.md`. |
-| Documentation | Yes | `README.md` includes editing, asset, and baby-face replacement instructions. |
+| Backend / database inputs | Not applicable | Static client invitation. |
+| QA review pass | Yes | Updated `reviews/qa-review.md`. |
+| Security review pass | Yes | Updated `reviews/security-review.md`. |
+| Documentation | Yes | README documents tail, fish, grounding, and reduced-motion behavior. |
 
 ## Architecture Review
 
-- Methodology compliance: Pass. The revision stays within the single-page invitation, centralizes editable data, and verifies every requested behavior.
-- Architecture decisions: Static raster asset layers; one client scene controller using requestAnimationFrame/refs; Framer Motion on nested art/UI wrappers; no backend or persistence.
-- Cross-role contract consistency: The implementation, `DESIGN.md`, handoff, README, QA review, and security review describe the same fixed composition and placeholder-content boundary.
-- Production readiness: Clean lint and typecheck, passing vinext production build, 4/4 rendered regression tests, optimized assets, metadata/social card, QA pass, and security pass.
-- Operability: Copy and object geometry use stable config files; image replacement paths are documented; no environment setup is required.
-- Rollback readiness: The validated source revision will be committed before Sites deployment.
-- Accessibility posture: Keyboard/direct activation, focus containment/restoration, Escape, live announcements, reduced motion, 48px controls, and scrollable all-details fallback are present.
-- Security posture: Read-only, no secrets or data collection, no injection surface, and private deployment only; moderate transitive audit note accepted.
-- Documentation accuracy: README and design/review artifacts match the implemented generated-asset paths.
+- Methodology compliance: Pass. The smallest stable implementation reuses one raster source and one existing animation loop.
+- Architecture decisions: Two clipped layers provide the tail poses; refs hold transient velocity; DOM geometry is sampled at one-sixth frame rate; reads are batched before CSS-variable writes; grounded art and message surfaces remain CSS-driven.
+- Contract consistency: Implementation, design spec, handoff, tests, QA, security, and README describe the same two-pose/reactive-fish system.
+- Production readiness: Clean lint/typecheck, passing vinext build, 4/4 tests, diff check, QA pass, and security pass.
+- Performance: No movement-driven React renders; three fish measurements are throttled; hidden-tab animation pause remains intact.
+- Accessibility posture: Existing keyboard, focus, Escape, announcements, touch behavior, modal scroll, and reduced-motion paths remain intact.
+- Security posture: Read-only and data-free; bounded numeric style updates introduce no HTML or code injection path. Moderate trusted-CSS PostCSS advisory remains accepted.
+- Rollback readiness: Publish from one validated commit after source and documentation are staged together.
 
 ## Approval Decision
 
 - Decision: `approved`
-- Required follow-up: Replace placeholder logistics and `/public/images/mermaid/baby-face.png` when the family provides them, then rerun the same verification gate.
-- Residual risks accepted: No browser screenshot matrix; small position tuning may be useful after real-device feedback. Moderate PostCSS advisory is unreachable under trusted static CSS.
-- Release notes: Premium raster-art underwater invitation with pointer/touch mermaid movement, six fixed illustrated discoveries, accessible all-details fallback, generated social card, and private Sites deployment readiness.
+- Required follow-up: Replace final family details and the real baby portrait when supplied.
+- Residual risks accepted: Tail cadence is a subjective visual parameter and may be tuned after device feedback; no browser screenshot matrix was requested.
+- Release notes: Two-pose speed-reactive mermaid tail, reactive opaque fish, grounded reef objects, removed ring bubbles, and redesigned pearl title/detail surfaces.

@@ -19,7 +19,13 @@ export const MermaidCharacter = forwardRef<HTMLDivElement>(function MermaidChara
         transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
       >
         <img
-          className="mermaid-art"
+          className="mermaid-body-art"
+          src="/images/mermaid/baby-mermaid-main.png"
+          alt=""
+          draggable={false}
+        />
+        <img
+          className="mermaid-tail-art"
           src="/images/mermaid/baby-mermaid-main.png"
           alt=""
           draggable={false}
