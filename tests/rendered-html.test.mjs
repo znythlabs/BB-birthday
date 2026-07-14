@@ -22,7 +22,7 @@ test("server-renders Liliana's invitation shell", async () => {
   const html = await response.text();
   assert.match(html, /<title>Liliana(?:’|&#x27;)s First Birthday \| Under the Sea<\/title>/i);
   assert.match(html, /A little mermaid is turning one/i);
-  assert.match(html, /Swim through the shimmer to reveal her party treasures/i);
+  assert.match(html, /A magical under-the-sea invitation/i);
   assert.match(html, /Open all party details/i);
   assert.match(html, /property="og:image" content="http:\/\/localhost(?::3000)?\/og\.png"/i);
   assert.match(html, /name="twitter:card" content="summary_large_image"/i);
@@ -42,13 +42,17 @@ test("keeps invitation content, illustrated assets, and face replacement central
   assert.match(scene, /requestAnimationFrame/);
   assert.match(scene, /prefers-reduced-motion/);
   assert.match(mermaid, /mermaid-face-photo/);
-  assert.match(mermaid, /baby-mermaid-main\.png/);
+  assert.match(mermaid, /baby-mermaid-body\.png/);
   assert.match(readme, /public\/images\/mermaid\/baby-face\.png/);
   assert.match(objects, /treasure-chest\.png/);
   assert.match(objects, /crab-cute\.png/);
   assert.doesNotMatch(objects, /\bicon\s*:/);
   await access(new URL("../public/images/underwater/background-main.png", import.meta.url));
   await access(new URL("../public/images/mermaid/baby-face-placeholder.png", import.meta.url));
+  await access(new URL("../public/images/mermaid/baby-mermaid-body.png", import.meta.url));
+  await access(new URL("../public/images/mermaid/baby-mermaid-tail.png", import.meta.url));
+  await access(new URL("../public/fonts/bodoni-moda-600.woff2", import.meta.url));
+  await access(new URL("../public/fonts/bodoni-moda-600-italic.woff2", import.meta.url));
 });
 
 test("uses raster artwork, reactive fish, and a two-frame tail instead of icon circles", async () => {
@@ -67,6 +71,8 @@ test("uses raster artwork, reactive fish, and a two-frame tail instead of icon c
   assert.match(scene, /dataset\.tailFrame/);
   assert.match(scene, /--flee-x/);
   assert.match(mermaid, /mermaid-tail-art/);
+  assert.match(mermaid, /baby-mermaid-body\.png/);
+  assert.match(mermaid, /baby-mermaid-tail\.png/);
   assert.match(css, /data-tail-frame="1"/);
   assert.doesNotMatch(css, /\.sea-object-icon/);
   assert.doesNotMatch(css, /\.ambient-fish-item::before/);

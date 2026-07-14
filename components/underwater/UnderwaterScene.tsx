@@ -132,31 +132,65 @@ export function UnderwaterScene() {
     let running = true;
     let tailFrame = 0;
     let lastTailToggle = 0;
-    let fleeFrame = 0;
-    const fleeingFish = Array.from(scene.querySelectorAll<HTMLElement>("[data-flee-fish]"));
-    const updateFleeingFish = (current: Point) => {
+    let fleeMeasureFrame = 0;
+    let previousFrameTime = 0;
+    const fishFlights = Array.from(scene.querySelectorAll<HTMLElement>("[data-flee-fish]")).map((fish) => ({
+      fish,
+      track: fish.closest<HTMLElement>(".ambient-fish-track"),
+      offsetX: 0,
+      offsetY: 0,
+      velocityX: 0,
+      velocityY: 0,
+      fleeingUntil: 0,
+      cooldownUntil: 0,
+      distance: Number.POSITIVE_INFINITY,
+    }));
+    const renderFishFlight = (flight: (typeof fishFlights)[number], flip: number, energy: number) => {
+      flight.fish.style.setProperty("--flee-x", `${flight.offsetX}px`);
+      flight.fish.style.setProperty("--flee-y", `${flight.offsetY}px`);
+      flight.fish.style.setProperty("--flee-flip", `${flip}`);
+      flight.fish.style.setProperty("--flee-energy", `${energy}`);
+    };
+    const sampleFishThreats = (current: Point, now: number) => {
       const sceneBounds = scene.getBoundingClientRect();
-      const measurements = fleeingFish.map((fish) => {
-        const bounds = fish.getBoundingClientRect();
+      const measurements = fishFlights.map((flight, index) => {
+        const bounds = flight.fish.getBoundingClientRect();
         const fishX = bounds.left - sceneBounds.left + bounds.width / 2;
         const fishY = bounds.top - sceneBounds.top + bounds.height / 2;
         const awayX = fishX - current.x;
         const awayY = fishY - current.y;
         const distance = Math.max(1, Math.hypot(awayX, awayY));
-        const strength = clamp((230 - distance) / 230, 0, 1);
-        const burst = strength * 132;
-        return { fish, awayX, awayY, distance, strength, burst };
+        return { flight, index, bounds, awayX, awayY, distance };
       });
-      for (const { fish, awayX, awayY, distance, strength, burst } of measurements) {
-        fish.style.setProperty("--flee-x", `${(awayX / distance) * burst}px`);
-        fish.style.setProperty("--flee-y", `${(awayY / distance) * burst * 0.68}px`);
-        fish.style.setProperty("--flee-flip", awayX < 0 ? "-1" : "1");
-        fish.style.setProperty("--flee-energy", `${strength}`);
+      for (const { flight, index, bounds, awayX, awayY, distance } of measurements) {
+        flight.distance = distance;
+        if (flight.track && (bounds.right < -140 || bounds.left > sceneBounds.width + 140)) {
+          flight.offsetX = 0;
+          flight.offsetY = 0;
+          renderFishFlight(flight, 1, 0);
+        }
+        if (distance >= 190 || now < flight.cooldownUntil || now < flight.fleeingUntil) continue;
+
+        const strength = clamp((190 - distance) / 190, 0, 1);
+        let directionX = awayX / distance;
+        let directionY = awayY / distance;
+        if (Math.abs(directionX) < 0.7) {
+          directionX = Math.sign(directionX || (index % 2 === 0 ? 1 : -1)) * 0.7;
+          directionY = Math.sign(directionY || -1) * Math.sqrt(1 - directionX * directionX);
+        }
+        const burstSpeed = 13 + strength * 8;
+        flight.velocityX = directionX * burstSpeed;
+        flight.velocityY = directionY * burstSpeed * 0.68;
+        flight.fleeingUntil = now + 560;
+        flight.cooldownUntil = now + 1700;
+        if (flight.track) flight.track.style.animationPlayState = "paused";
       }
     };
 
     const renderFrame = (now: number) => {
       if (!running) return;
+      const frameScale = clamp((now - previousFrameTime) / 16.67, 0.5, 2);
+      previousFrameTime = now;
       const current = currentRef.current;
       const target = targetRef.current;
       const dx = target.x - current.x;
@@ -170,11 +204,12 @@ export function UnderwaterScene() {
       const swimEnergy = reducedMotionRef.current
         ? 0
         : clamp(Math.max(pointerMotionRef.current.speed / 1.35, travelSpeed / 17), 0, 1);
-      const flapInterval = 560 - swimEnergy * 430;
-      if (swimEnergy > 0.055 && now - lastTailToggle >= flapInterval) {
+      const flapInterval = 920 - swimEnergy * 780;
+      if (lastTailToggle === 0) lastTailToggle = now;
+      if (!reducedMotionRef.current && now - lastTailToggle >= flapInterval) {
         tailFrame = tailFrame === 0 ? 1 : 0;
         lastTailToggle = now;
-      } else if (swimEnergy <= 0.055) {
+      } else if (reducedMotionRef.current) {
         tailFrame = 0;
       }
       mermaid.dataset.tailFrame = `${tailFrame}`;
@@ -184,8 +219,26 @@ export function UnderwaterScene() {
       const tilt = reducedMotionRef.current ? 0 : clamp(dy * 0.045, -10, 10);
       mermaid.style.transform = `translate3d(${current.x}px, ${current.y}px, 0) translate(-50%, -50%) rotate(${tilt}deg) scaleX(${flip})`;
 
-      fleeFrame = (fleeFrame + 1) % 6;
-      if (fleeFrame === 0) updateFleeingFish(current);
+      for (const flight of fishFlights) {
+        if (now < flight.fleeingUntil) {
+          flight.offsetX += flight.velocityX * frameScale;
+          flight.offsetY += flight.velocityY * frameScale;
+          flight.velocityX *= Math.pow(0.982, frameScale);
+          flight.velocityY *= Math.pow(0.982, frameScale);
+          renderFishFlight(flight, flight.velocityX < 0 ? -1 : 1, 1);
+        } else if (flight.track) {
+          flight.track.style.animationPlayState = "running";
+          renderFishFlight(flight, 1, 0);
+        } else if (flight.distance > 220 && Math.hypot(flight.offsetX, flight.offsetY) > 1) {
+          const returnRate = Math.pow(0.94, frameScale);
+          const returnDirection = flight.offsetX > 0 ? -1 : 1;
+          flight.offsetX *= returnRate;
+          flight.offsetY *= returnRate;
+          renderFishFlight(flight, returnDirection, 0.35);
+        }
+      }
+      fleeMeasureFrame = (fleeMeasureFrame + 1) % 6;
+      if (fleeMeasureFrame === 0) sampleFishThreats(current, now);
 
       const { width, height } = sizeRef.current;
       if (width && height && !pinnedIdRef.current) {
@@ -276,8 +329,11 @@ export function UnderwaterScene() {
 
       <header className="title-bubble">
         <p className="title-eyebrow">{eventDetails.eyebrow}</p>
-        <h1>{eventDetails.celebrantName}</h1>
-        <p className="title-subtitle">Swim through the shimmer to reveal her party treasures.</p>
+        <h1>
+          <span className="title-name">{eventDetails.celebrantName}’s</span>
+          <span className="title-occasion">First Birthday</span>
+        </h1>
+        <p className="title-subtitle">A magical under-the-sea invitation</p>
       </header>
 
       <div className="interaction-hint" data-hidden={hasMoved || undefined}>

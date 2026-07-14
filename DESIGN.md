@@ -21,11 +21,12 @@ Interactive labels are not permanently displayed. Each object gets a subtle pear
 ### Generated asset system
 
 - `public/images/underwater/background-main.png`: full-bleed environment with open center.
-- `public/images/mermaid/baby-mermaid-main.png`: primary character; the actual baby portrait remains a replaceable identity layer until supplied.
+- `public/images/mermaid/baby-mermaid-main.png`: preserved master character art.
+- `public/images/mermaid/baby-mermaid-body.png` and `baby-mermaid-tail.png`: pixel-aligned production layers; the actual baby portrait remains a replaceable identity layer until supplied.
 - `public/images/sea-elements/`: fixed shell, chest, crab, coral, plant, starfish, clam, and rock assets.
 - `public/images/fish/`: three independently animated fish sprites.
 
-The mermaid uses exactly two tail poses. Only the clipped tail layer changes pose; its toggle cadence is driven by live swim energy so the face and torso never jitter. Fish remain opaque and calculate a short flee vector when Liliana enters their reaction radius. Shell, starfish, coral, chest, and crab sit low in the reef with contact shadows and do not bob like open-water creatures.
+The mermaid uses exactly two pixel-aligned raster layers and two tail poses. The tail continues a slow 920ms idle stroke and accelerates toward 140ms from live swim energy while the face, hands, and torso remain untouched. Fish remain opaque and use a triggered 560ms burst state with matching travel/facing direction, cooldown, and offscreen reset rather than a continuous magnetic offset. Shell, starfish, coral, chest, and crab sit partially below the reef line with contact shadows and foreground sand occlusion; they do not bob like open-water creatures.
 
 Decorative hollow ring overlays are prohibited. Retain only the background artwork’s small natural pearl bubbles.
 
@@ -38,7 +39,7 @@ A single-screen magical underwater invitation that behaves like a gentle mini-ga
 ## Visual hierarchy
 
 1. The baby mermaid is the moving focal point and must remain visible above ambient effects.
-2. A compact pearlescent shell plaque introduces the invitation without obscuring the open center of the artwork.
+2. Unboxed Bodoni-style pearlescent title typography echoes the social cover without obscuring the open center.
 3. Six interactive sea objects sit around the quieter edges and seabed. Each must have a visible label or hint so discovery never becomes guesswork.
 4. Only one structured pearl detail card is open at a time. Its pearl kicker, restrained heading, value, and close behavior must be immediately readable.
 

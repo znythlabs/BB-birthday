@@ -11,7 +11,7 @@
 
 ## Summary
 
-Refined the premium underwater scene from direct visual feedback. The mermaid now uses an exactly two-pose, tail-only flap whose cadence tracks live movement energy. Ambient and message fish are opaque, swim independently, and calculate a short flee burst when Liliana enters their reaction radius. Grounded discoveries sit lower in the reef with contact shadows and no idle bobbing. Hollow ring overlays were removed, and both the headline plaque and detail cards were redesigned as smaller structured pearlescent shell surfaces.
+Refined the premium underwater scene from direct visual feedback. The mermaid now uses dedicated pixel-aligned body and tail PNG layers, preserving the full torso and both hands while an exactly two-pose tail stroke continues at idle and accelerates with live movement energy. Fish use a triggered burst/cooldown state so facing and travel direction always agree. Grounded discoveries sit partially below the reef line with contact shadows and foreground occlusion. The headline is now unboxed Bodoni-style pearlescent typography matching the cover treatment.
 
 ## Methodology References Used
 
@@ -22,13 +22,13 @@ Refined the premium underwater scene from direct visual feedback. The mermaid no
 
 ## Scope Completed
 
-- Split the existing mermaid art into aligned body and tail clip layers, avoiding frame-to-frame face/body drift.
-- Added a two-state tail controller with speed-derived 130–560ms cadence and a stable idle pose.
-- Added batched, throttled proximity measurements for three fish and CSS flee vectors without React frame rerenders.
+- Split the master mermaid art into dedicated alpha-masked body and tail PNG layers, preserving hands and torso without CSS clipping.
+- Added a two-state tail controller with a continuous 920ms idle stroke that accelerates toward 140ms from live movement energy.
+- Replaced continuous fish offsets with triggered 560ms burst velocity, cooldown, paused base tracks, direction-matched flipping, offscreen reset, and controlled return for the message fish.
 - Increased fish opacity and saturation while keeping natural independent swim loops.
-- Moved the coral discovery down into the right reef, removed grounded-object idle drift, and added contact shadows.
+- Moved every grounded discovery lower into the seabed, removed grounded-object idle drift, and added contact shadows plus foreground sand/reef occlusion.
 - Removed the large transparent ring-bubble layer and its unused asset.
-- Rebuilt the title as a compact shell plaque and detail messages as structured pearl cards with tighter hierarchy.
+- Rebuilt the title as unboxed, locally bundled Bodoni Moda pearlescent typography matching the cover; detail messages remain structured pearl cards.
 - Updated tests and documentation.
 
 ## Artifacts
@@ -36,7 +36,7 @@ Refined the premium underwater scene from direct visual feedback. The mermaid no
 - Implementation: `components/underwater/UnderwaterScene.tsx`, `AmbientLayers.tsx`, `MermaidCharacter.tsx`, `InteractiveSeaObject.tsx`, `app/globals.css`, `data/interactiveObjects.ts`.
 - Documentation: `DESIGN.md`, `README.md`.
 - Penpot artifacts: None; Penpot was not requested or used.
-- Image generation: Built-in image edit was used to explore the opposite power-stroke pose. The generated full-body variant was rejected because it changed invariant body geometry; no rejected variant was added to the project. The production sequence uses the existing aligned raster source.
+- Image workflow: The preserved master raster was deterministically separated into `baby-mermaid-body.png` and `baby-mermaid-tail.png`; a two-frame matte preview verified the full body/hands and visibly different tail poses before integration.
 
 ## Verification
 

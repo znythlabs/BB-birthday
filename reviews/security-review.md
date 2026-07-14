@@ -27,7 +27,8 @@
 | Input validation | Pass | No user content input. Host/protocol metadata input is constrained, parsed by `URL`, and has a safe fallback. |
 | Output encoding | Pass | React-rendered static strings; no raw HTML path. |
 | Injection risks | Pass | No `dangerouslySetInnerHTML`, `eval`, dynamic function construction, database query, shell call, or external request in app code. |
-| Motion/style mutation | Pass | Numeric flee and tail values are computed internally, bounded with `clamp`, and written through DOM style APIs rather than string-parsed markup. |
+| Motion/style mutation | Pass | Tail cadence, burst velocity, cooldowns, and return offsets are computed internally, bounded with `clamp`, and written through DOM style APIs rather than string-parsed markup. |
+| External asset exposure | Pass | Bodoni font files and mermaid body/tail layers are bundled locally; no third-party font or image request was added. |
 | CSRF/CORS/session handling | Not applicable | No mutation endpoint, cookies, or session. |
 | Dependency risk | Pass with note | Production audit reports two moderate PostCSS advisories through Next; no high/critical finding. The vulnerable stringify path receives trusted static CSS only. |
 | Logging and telemetry exposure | Pass | No application telemetry or personal-data logging. |

@@ -21,10 +21,10 @@
 | --- | --- | --- | --- | --- |
 | Unit | Automated | `node --test tests/rendered-html.test.mjs` via `npm test` | Pass | 4/4 tests pass. |
 | Integration | Automated | `npm test` | Pass | Full production build plus rendered-worker checks. |
-| Tail motion | Source/automated | Tail-frame assertions and controller review | Pass | Exactly two dataset states; cadence derives from pointer/travel energy; idle and reduced-motion return to frame 0. |
-| Fish reaction | Source/automated | Flee-marker assertions and animation review | Pass | Three fish use throttled proximity vectors, batched reads/writes, opaque rendering, and no React frame state. |
-| Environmental integration | Manual/source | Position, shadow, and motion-rule review | Pass | Coral lowered into reef; grounded objects have contact shadows and no bobbing. |
-| Visual hierarchy | Manual/source | Title/detail CSS review | Pass | Compact shell plaque and smaller structured pearl cards replace oversized oval surfaces. |
+| Tail motion | Source/automated/manual asset preview | Tail-frame assertions, controller review, two-frame matte preview | Pass | Exactly two states; 920ms idle stroke accelerates toward 140ms; dedicated body layer preserves hands/torso; reduced motion stays at frame 0. |
+| Fish reaction | Source/automated | Flee-marker assertions and state review | Pass | Triggered velocity burst/cooldown replaces magnetic avoidance; base track pauses during escape; flip always matches horizontal travel. |
+| Environmental integration | Manual/source | Position, shadow, and occlusion-rule review | Pass | All grounded discoveries lowered into reef/sand with contact shadows, foreground occlusion, and no bobbing. |
+| Visual hierarchy | Manual/source | Title/detail CSS and font-asset review | Pass | Unboxed local Bodoni Moda pearl typography matches cover direction; compact pearl detail cards remain readable. |
 | Accessibility | Source/automated | Existing interaction regression suite | Pass | Keyboard buttons, focus, modal, Escape, announcements, touch, and reduced-motion paths preserved. |
 | Regression | Automated | `npm run lint`, `npm run typecheck`, `npm test`, `git diff --check` | Pass | Clean source and production build. |
 
@@ -32,7 +32,7 @@
 
 | Severity | Owner | Repro Steps | Expected | Actual | Status |
 | --- | --- | --- | --- | --- | --- |
-| Medium | Frontend | Swap a generated alternate full-body sprite | Tail changes while body/face remain aligned | Generated edit changed body geometry | Rejected; implemented clipped tail-only layers |
+| High | Frontend | Inspect initial CSS tail split | Tail changes while hands/body remain intact | CSS polygon masked left hand and torso | Fixed with dedicated alpha-masked body/tail PNG layers and matte preview |
 | Low | QA | Run first updated regression suite | Image assertion accepts formatted multiline JSX | Assertion expected a same-line class attribute | Fixed and rerun |
 
 ## Coverage Gaps

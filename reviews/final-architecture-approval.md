@@ -11,30 +11,31 @@
 
 | Input | Present | Notes |
 | --- | --- | --- |
-| Karpathy Skills reflected in handoff | Yes | The revision preserves the working scene controller and changes only requested motion/visual layers. |
-| Awesome Design MD reflected in design work | Yes | Motion meaning, environmental grounding, hierarchy, accessibility, and responsive rules are documented. |
-| Product requirements | Yes | User screenshots and written refinements are the source of truth. |
+| Karpathy Skills reflected in handoff | Yes | The fix replaces the faulty clip approximation with explicit, verified layers and a bounded fish state machine. |
+| Awesome Design MD reflected in design work | Yes | Motion meaning, environmental grounding, typography, accessibility, and responsive rules are documented. |
+| Product requirements | Yes | User screenshots and written corrections are the source of truth. |
 | UI/UX design spec | Yes | Updated `DESIGN.md`; no Penpot claim is made. |
-| Frontend Engineer handoff | Yes | `handoffs/frontend-to-lead.md`. |
+| Frontend Engineer handoff | Yes | Updated `handoffs/frontend-to-lead.md`. |
 | Backend / database inputs | Not applicable | Static client invitation. |
-| QA review pass | Yes | Updated `reviews/qa-review.md`. |
+| QA review pass | Yes | Updated `reviews/qa-review.md`; build and 4/4 tests pass. |
 | Security review pass | Yes | Updated `reviews/security-review.md`. |
-| Documentation | Yes | README documents tail, fish, grounding, and reduced-motion behavior. |
+| Documentation | Yes | README describes continuous idle flapping, burst fish, local fonts, and separated art layers. |
 
 ## Architecture Review
 
-- Methodology compliance: Pass. The smallest stable implementation reuses one raster source and one existing animation loop.
-- Architecture decisions: Two clipped layers provide the tail poses; refs hold transient velocity; DOM geometry is sampled at one-sixth frame rate; reads are batched before CSS-variable writes; grounded art and message surfaces remain CSS-driven.
-- Contract consistency: Implementation, design spec, handoff, tests, QA, security, and README describe the same two-pose/reactive-fish system.
-- Production readiness: Clean lint/typecheck, passing vinext build, 4/4 tests, diff check, QA pass, and security pass.
-- Performance: No movement-driven React renders; three fish measurements are throttled; hidden-tab animation pause remains intact.
-- Accessibility posture: Existing keyboard, focus, Escape, announcements, touch behavior, modal scroll, and reduced-motion paths remain intact.
-- Security posture: Read-only and data-free; bounded numeric style updates introduce no HTML or code injection path. Moderate trusted-CSS PostCSS advisory remains accepted.
-- Rollback readiness: Publish from one validated commit after source and documentation are staged together.
+- Methodology compliance: Pass. The implementation fixes the root causes rather than adding more visual compensation.
+- Architecture decisions: The preserved master raster is separated into pixel-aligned alpha body and tail assets; exactly two tail transforms toggle at a 920–140ms speed-derived cadence. Fish use a triggered 560ms velocity burst with cooldown, paused base track, direction-matched facing, offscreen reset, and controlled return behavior.
+- Cross-role consistency: Source, artwork, design spec, handoff, README, tests, QA, and security review describe the same final system.
+- Production readiness: Clean lint/typecheck, successful vinext build, 4/4 tests, asset-access checks, diff check, QA pass, and security pass.
+- Performance: No movement-driven React renders; fish geometry reads are throttled and batched; transient values remain in effect-local state and CSS variables.
+- Operability: Bodoni fonts are bundled locally; no external runtime dependency, secret, API, or database is introduced.
+- Accessibility posture: Keyboard, focus, Escape, announcements, touch, modal scrolling, and reduced-motion paths remain intact.
+- Security posture: Read-only and data-free; numeric DOM style updates and local static assets introduce no HTML injection or data boundary.
+- Rollback readiness: The complete validated source and assets are committed as one revision before deployment.
 
 ## Approval Decision
 
 - Decision: `approved`
-- Required follow-up: Replace final family details and the real baby portrait when supplied.
-- Residual risks accepted: Tail cadence is a subjective visual parameter and may be tuned after device feedback; no browser screenshot matrix was requested.
-- Release notes: Two-pose speed-reactive mermaid tail, reactive opaque fish, grounded reef objects, removed ring bubbles, and redesigned pearl title/detail surfaces.
+- Required follow-up: Replace final event details and the real baby portrait when supplied.
+- Residual risks accepted: Tail cadence remains a subjective visual parameter that can be tuned after device feedback; no browser screenshot matrix was explicitly requested.
+- Release notes: Corrected body/hand masking, continuous two-pose tail flap with speed acceleration, realistic triggered fish escape bursts, deeper seabed integration, and unboxed Bodoni-style pearl headline.

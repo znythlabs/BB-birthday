@@ -36,7 +36,7 @@ export function InteractiveSeaObject({ object, active, onActivate }: Props) {
         className="sea-object-motion"
         initial={false}
         animate={{ y: active && !grounded ? -8 : 0, scale: active ? 1.055 : 1 }}
-        whileHover={{ y: grounded ? -2 : -6, scale: 1.04 }}
+        whileHover={{ y: grounded ? 0 : -6, scale: grounded ? 1.025 : 1.04 }}
         whileTap={{ scale: 0.97 }}
         transition={{ type: "spring", stiffness: 260, damping: 18 }}
       >

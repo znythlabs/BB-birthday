@@ -20,13 +20,13 @@ export const MermaidCharacter = forwardRef<HTMLDivElement>(function MermaidChara
       >
         <img
           className="mermaid-body-art"
-          src="/images/mermaid/baby-mermaid-main.png"
+          src="/images/mermaid/baby-mermaid-body.png"
           alt=""
           draggable={false}
         />
         <img
           className="mermaid-tail-art"
-          src="/images/mermaid/baby-mermaid-main.png"
+          src="/images/mermaid/baby-mermaid-tail.png"
           alt=""
           draggable={false}
         />
