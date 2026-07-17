@@ -27,11 +27,11 @@
 ## File and Responsibility Map
 
 - `docs/assets/underwater-v2-production.json`: production contract and exact clip counts.
-- `scripts/underwater-v2/matte.py`: border-key estimation and yellow-to-alpha conversion.
-- `scripts/underwater-v2/deform.py`: protected-region mesh displacement and anchor blending.
-- `scripts/underwater-v2/pack.py`: spritesheet, contact-sheet, and manifest writer.
-- `scripts/underwater-v2/render_mermaid.py`: deterministic Liliana clip renderer.
-- `scripts/underwater-v2/render_objects.py`: deterministic interactive-object renderer.
+- `scripts/underwater_v2/matte.py`: border-key estimation and yellow-to-alpha conversion.
+- `scripts/underwater_v2/deform.py`: protected-region mesh displacement and anchor blending.
+- `scripts/underwater_v2/pack.py`: spritesheet, contact-sheet, and manifest writer.
+- `scripts/underwater_v2/render_mermaid.py`: deterministic Liliana clip renderer.
+- `scripts/underwater_v2/render_objects.py`: deterministic interactive-object renderer.
 - `tests/python/test_underwater_renderer.py`: matte, deformation, bounds, frame-count, and packing tests.
 - `public/images/underwater-v2/`: approved runtime frames, sheets, previews, and manifests.
 - `data/spriteCatalog.ts`: typed runtime asset catalog.
@@ -107,9 +107,9 @@ git commit -m "docs: define direct underwater rig contract"
 ### Task 2: Implement lossless chroma extraction and fixed-canvas packing
 
 **Files:**
-- Create: `scripts/underwater-v2/__init__.py`
-- Create: `scripts/underwater-v2/matte.py`
-- Create: `scripts/underwater-v2/pack.py`
+- Create: `scripts/underwater_v2/__init__.py`
+- Create: `scripts/underwater_v2/matte.py`
+- Create: `scripts/underwater_v2/pack.py`
 - Create: `tests/python/test_underwater_renderer.py`
 
 **Interfaces:**
@@ -208,7 +208,7 @@ Run: `python -m unittest discover -s tests/python -p "test_*.py" -v`
 Expected: PASS.
 
 ```powershell
-git add scripts/underwater-v2 tests/python
+git add scripts/underwater_v2 tests/python
 git commit -m "feat: add lossless underwater sprite pipeline"
 ```
 
@@ -217,8 +217,8 @@ git commit -m "feat: add lossless underwater sprite pipeline"
 ### Task 3: Render Liliana's three approved clips
 
 **Files:**
-- Create: `scripts/underwater-v2/deform.py`
-- Create: `scripts/underwater-v2/render_mermaid.py`
+- Create: `scripts/underwater_v2/deform.py`
+- Create: `scripts/underwater_v2/render_mermaid.py`
 - Modify: `tests/python/test_underwater_renderer.py`
 - Create: `public/images/underwater-v2/mermaid/**`
 
@@ -276,7 +276,7 @@ Blend only a feathered face ellipse covering normalized bounds `(0.58, 0.08, 0.8
 Run:
 
 ```powershell
-python scripts/underwater-v2/render_mermaid.py
+python scripts/underwater_v2/render_mermaid.py
 python -m unittest discover -s tests/python -p "test_*.py" -v
 ```
 
@@ -287,7 +287,7 @@ Expected: 30 RGBA frames, three sheets, three contact sheets, three manifests, a
 Reject any missing hair, bow, fingers, fins, sequins, teeth, or matte damage. Keep unkeyed and keyed intermediates under `spriterrific-runs/`.
 
 ```powershell
-git add scripts/underwater-v2 public/images/underwater-v2/mermaid tests/python
+git add scripts/underwater_v2 public/images/underwater-v2/mermaid tests/python
 git commit -m "feat: render identity-safe Liliana sprite clips"
 ```
 
@@ -297,7 +297,7 @@ git commit -m "feat: render identity-safe Liliana sprite clips"
 
 **Files:**
 - Create: `spriterrific-runs/<object>/reference/anchor-source.png`
-- Create: `scripts/underwater-v2/render_objects.py`
+- Create: `scripts/underwater_v2/render_objects.py`
 - Modify: `tests/python/test_underwater_renderer.py`
 - Create: `public/images/underwater-v2/interactives/**`
 
@@ -345,12 +345,12 @@ Store per-object hinge and mask coordinates in `docs/assets/underwater-v2-produc
 
 - [ ] **Step 6: Render, inspect, and commit**
 
-Run: `python scripts/underwater-v2/render_objects.py && python -m unittest discover -s tests/python -p "test_*.py" -v`
+Run: `python scripts/underwater_v2/render_objects.py && python -m unittest discover -s tests/python -p "test_*.py" -v`
 
 Expected: 52 object frames plus sheets/contact sheets/manifests and all tests PASS.
 
 ```powershell
-git add docs/assets/underwater-v2-production.json scripts/underwater-v2 public/images/underwater-v2/interactives tests/python
+git add docs/assets/underwater-v2-production.json scripts/underwater_v2 public/images/underwater-v2/interactives tests/python
 git commit -m "feat: render underwater interactive sprite clips"
 ```
 
@@ -548,7 +548,7 @@ git commit -m "feat: integrate direct-rig underwater scene"
 ### Task 8: Perform visual, masking, shadow, and responsive acceptance
 
 **Files:**
-- Modify if required: `scripts/underwater-v2/**`
+- Modify if required: `scripts/underwater_v2/**`
 - Modify if required: `public/images/underwater-v2/**`
 - Modify if required: `components/underwater/**`
 - Modify if required: `app/globals.css`
@@ -587,6 +587,6 @@ npm test
 Expected: all checks pass with no warnings attributable to the underwater-v2 work.
 
 ```powershell
-git add README.md scripts/underwater-v2 public/images/underwater-v2 data components/underwater app/globals.css tests
+git add README.md scripts/underwater_v2 public/images/underwater-v2 data components/underwater app/globals.css tests
 git commit -m "fix: complete direct-rig underwater acceptance"
 ```

@@ -95,7 +95,7 @@ Each clip contains individual RGBA frames, a spritesheet, a preview, a manifest,
 
 ## Renderer and Runtime Boundaries
 
-- `scripts/underwater-v2/` contains deterministic Python/Pillow render tools.
+- `scripts/underwater_v2/` contains deterministic Python/Pillow render tools.
 - Pure color-key, deformation, packing, and manifest functions are testable without browser code.
 - `data/spriteCatalog.ts` is the only runtime asset catalog.
 - `SpriteActor` advances one frame index shared by subject and shadow.
