@@ -56,4 +56,4 @@ No API, database, authentication, or runtime secrets are required.
 
 ## Underwater-v2 asset production
 
-Raw Spriterrific runs live in `spriterrific-runs/` and must not be deleted. Each run retains provider video, dense unkeyed frames, selected unkeyed frames, keyed frames, manual fixes, shadows, final exports, and `job.json`. Approved runtime assets are copied to `public/images/underwater-v2/` only after visual review.
+Underwater-v2 production uses deterministic local rig rendering from the approved unmasked anchors at `spriterrific-runs/mermaid-smile/reference/anchor-source.png` and `spriterrific-runs/mermaid-laugh/reference/anchor-source.png`. Liliana's animation frames must not be generatively repainted. Preserve every raw unmasked source and intermediate derivative under `spriterrific-runs/`; only reviewed runtime exports belong under `public/images/underwater-v2/`.

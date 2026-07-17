@@ -36,4 +36,11 @@ test("underwater-v2 contract preserves raw artifacts and exact cast", async () =
   ]);
   assert.equal(contract.liliana.forbidden.includes("pearl necklace"), true);
   assert.equal(contract.rendering.pixelSnap, false);
+  assert.equal(contract.rendering.pipeline, "deterministic-local-rig");
+  assert.deepEqual(contract.liliana.approvedAnchors, {
+    idle: "spriterrific-runs/mermaid-smile/reference/anchor-source.png",
+    laugh: "spriterrific-runs/mermaid-laugh/reference/anchor-source.png",
+  });
+  assert.deepEqual(contract.liliana.teeth, { lower: 2, upper: 0 });
+  assert.equal(contract.rendering.generativeFrameEdits, false);
 });
