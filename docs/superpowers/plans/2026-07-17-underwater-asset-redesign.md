@@ -1,5 +1,7 @@
 # Underwater Asset Redesign Implementation Plan
 
+> **Status:** Superseded by `2026-07-17-underwater-direct-rig.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace every foreground asset with a Spriterrific-produced, multi-frame underwater-v2 cast that matches the new background, preserves Liliana's identity and outfit, retains every unkeyed source, and uses silhouette-derived dynamic shadows.
