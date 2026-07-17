@@ -1,0 +1,22 @@
+{
+  "sceneReference": "public/images/underwater/background-main.png",
+  "rendering": { "style": "cinematic stylized 3D storybook", "pixelSnap": false, "candidatePreset": "preserve-reference-v1" },
+  "liliana": {
+    "references": ["DSC_8227.jpg", "DSC_8280.jpg"],
+    "required": ["exact facial identity", "lavender glitter bow", "magenta sequined shell top", "emerald scaled mermaid tail"],
+    "forbidden": ["pearl necklace", "loose pearl strand", "handheld beads"]
+  },
+  "archive": {
+    "root": "spriterrific-runs",
+    "requiredDirectories": ["reference", "raw-unkeyed/provider-video", "raw-unkeyed/dense-frames", "raw-unkeyed/contact-sheets", "selected-unkeyed", "keyed", "manual-fixes", "shadows", "final"]
+  },
+  "assets": [
+    { "id": "mermaid", "clips": { "idle": 8, "swim": 12, "discover": 10 } },
+    { "id": "pearl-shell", "clips": { "open": 8 } },
+    { "id": "fish-courier", "clips": { "swim": 10 } },
+    { "id": "sea-turtle", "clips": { "swim": 10 } },
+    { "id": "treasure-chest", "clips": { "open": 8 } },
+    { "id": "jellyfish", "clips": { "pulse": 8 } },
+    { "id": "crab", "clips": { "wave": 8 } }
+  ]
+}

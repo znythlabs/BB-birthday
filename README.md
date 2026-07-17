@@ -53,3 +53,7 @@ All illustrated scene assets were made as a coordinated raster set. Keep the sam
 - Animation pauses while the browser tab is hidden.
 
 No API, database, authentication, or runtime secrets are required.
+
+## Underwater-v2 asset production
+
+Raw Spriterrific runs live in `spriterrific-runs/` and must not be deleted. Each run retains provider video, dense unkeyed frames, selected unkeyed frames, keyed frames, manual fixes, shadows, final exports, and `job.json`. Approved runtime assets are copied to `public/images/underwater-v2/` only after visual review.

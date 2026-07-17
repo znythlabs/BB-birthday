@@ -44,3 +44,6 @@ next-env.d.ts
 /.cache/
 /tmp/
 /.worktrees/
+
+# Spriterrific raw production archive is preserved locally; approved runtime exports live in public/images/underwater-v2.
+/spriterrific-runs/
