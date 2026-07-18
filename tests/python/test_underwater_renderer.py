@@ -1,3 +1,5 @@
+import hashlib
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -9,11 +11,48 @@ from PIL import Image
 from scripts.underwater_v2.deform import blend_expression, tail_wave
 from scripts.underwater_v2.matte import estimate_border_key, key_to_alpha
 from scripts.underwater_v2.pack import pack_sheet, write_manifest
+from scripts.underwater_v2.repack import repack_clip
 from scripts.underwater_v2.render_mermaid import render_mermaid_clips
 from scripts.underwater_v2.render_objects import render_object_clips
 
 
 class RendererTests(TestCase):
+    def test_accepted_runtime_exports_are_complete_motion_advancing_and_padded(self):
+        repository = Path(__file__).resolve().parents[2]
+        clips = {
+            "mermaid/idle": 8,
+            "mermaid/swim": 12,
+            "mermaid/discover": 10,
+            "interactives/pearl-shell": 8,
+            "interactives/fish-courier": 10,
+            "interactives/sea-turtle": 10,
+            "interactives/treasure-chest": 8,
+            "interactives/jellyfish": 8,
+            "interactives/crab": 8,
+        }
+        total = 0
+        for clip_name, expected_count in clips.items():
+            clip = repository / "public" / "images" / "underwater-v2" / clip_name
+            manifest = json.loads((clip / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(manifest["frames"], expected_count)
+            digests = []
+            for index in range(expected_count):
+                frame_path = clip / "frames" / f"frame-{index:03d}.png"
+                with Image.open(frame_path) as frame:
+                    self.assertEqual(frame.mode, "RGBA")
+                    self.assertEqual(frame.size, (768, 432))
+                    bounds = frame.getchannel("A").getbbox()
+                    self.assertIsNotNone(bounds)
+                    left, top, right, bottom = bounds
+                    self.assertGreaterEqual(min(left, top, 768 - right, 432 - bottom), 12)
+                    digests.append(hashlib.sha256(frame.tobytes()).digest())
+            self.assertGreaterEqual(len(set(digests)), (expected_count + 1) // 2)
+            self.assertTrue(
+                all(left != right for left, right in zip(digests, digests[1:]))
+            )
+            total += expected_count
+        self.assertEqual(total, 82)
+
     def test_green_chroma_edge_is_decontaminated(self):
         image = Image.new("RGB", (8, 8), (0, 255, 0))
         image.putpixel((3, 3), (0, 150, 0))
@@ -242,3 +281,35 @@ class RendererTests(TestCase):
                 '  "loop": true\n'
                 "}\n",
             )
+
+    def test_repack_clip_applies_a_validated_manual_mask(self):
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            clip = root / "discover"
+            frames = clip / "frames"
+            frames.mkdir(parents=True)
+            for index in range(2):
+                Image.new("RGBA", (8, 6), (index, 0, 0, 255)).save(
+                    frames / f"frame-{index:03d}.png"
+                )
+            write_manifest(
+                clip / "manifest.json",
+                frame_width=8,
+                frame_height=6,
+                frames=2,
+                columns=2,
+                fps=8,
+                loop=True,
+            )
+            replacement = root / "manual-fixes" / "frame-001.png"
+            replacement.parent.mkdir(parents=True)
+            Image.new("RGBA", (8, 6), (240, 20, 80, 128)).save(replacement)
+
+            repack_clip(clip, replacement)
+
+            with Image.open(frames / "frame-001.png") as repaired:
+                self.assertEqual(repaired.getpixel((0, 0)), (240, 20, 80, 128))
+            with Image.open(clip / "sheet.png") as sheet:
+                self.assertEqual(sheet.size, (16, 6))
+                self.assertEqual(sheet.getpixel((8, 0)), (240, 20, 80, 128))
+            self.assertTrue((clip / "contact-sheet.png").is_file())

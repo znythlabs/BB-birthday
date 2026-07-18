@@ -162,11 +162,11 @@ def _rotate_whole(frame: Image.Image, angle: float) -> Image.Image:
     )
 
 
-def _translate(frame: Image.Image, y_offset: int) -> Image.Image:
-    if y_offset == 0:
+def _translate(frame: Image.Image, y_offset: int, x_offset: int = 0) -> Image.Image:
+    if y_offset == 0 and x_offset == 0:
         return frame.copy()
     moved = Image.new("RGBA", frame.size)
-    moved.alpha_composite(frame, (0, y_offset))
+    moved.alpha_composite(frame, (x_offset, y_offset))
     return moved
 
 
@@ -230,7 +230,11 @@ def _render_asset(
                 hinge_x=0.29,
                 amplitude_px=max(2, round(11 * scale)),
             )
-            frame = _translate(_rotate_whole(frame, loop * 1.5), round(loop * 2 * scale))
+            frame = _translate(
+                _rotate_whole(frame, loop * 1.5),
+                round(loop * 2 * scale),
+                round(cos(phase * tau) * 2 * scale),
+            )
         elif asset_id == "sea-turtle":
             frame = _rotate_segment(
                 anchor,
@@ -238,12 +242,16 @@ def _render_asset(
                 (0.59, 0.52),
                 loop * 7,
             )
-            frame = _translate(_rotate_whole(frame, loop * 1.2), round(loop * 2 * scale))
+            frame = _translate(
+                _rotate_whole(frame, loop * 1.2),
+                round(loop * 2 * scale),
+                round(cos(phase * tau) * 2 * scale),
+            )
         elif asset_id == "treasure-chest":
             frame = _lift_segment(
                 anchor,
                 (0.11, 0.10, 0.90, 0.52),
-                round(max(2, 10 * scale) * ease),
+                round(max(2, 16 * scale) * ease),
             )
         elif asset_id == "jellyfish":
             frame = _pulse(anchor, 1 + 0.035 * loop)
@@ -308,7 +316,7 @@ def render_object_clips(
     """Render all object clips while retaining removable-matte repair copies."""
     root = _repository_root()
     sources = sources or _default_sources(root)
-    archive_root = archive_root or root / "spriterrific-runs/object-rig-v2"
+    archive_root = archive_root or root / "spriterrific-runs/object-rig-v3"
     output_dir = Path(output_dir)
     if set(sources) != set(OBJECT_SPECS):
         raise ValueError("object sources must match the exact underwater-v2 cast")
