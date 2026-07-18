@@ -1,19 +1,50 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- generated transparent sprites require direct DOM sizing */
-
-import { motion } from "framer-motion";
 import type { CSSProperties } from "react";
+
 import type { InteractiveSeaObjectData } from "@/data/interactiveObjects";
+import { projectShadow } from "@/lib/underwaterProjection.mjs";
+import { SpriteActor } from "./SpriteActor";
 
 type Props = {
   object: InteractiveSeaObjectData;
   active: boolean;
+  sceneWidth: number;
+  sceneHeight: number;
   onActivate: (object: InteractiveSeaObjectData) => void;
 };
 
-export function InteractiveSeaObject({ object, active, onActivate }: Props) {
-  const grounded = object.kind !== "fish";
+export function InteractiveSeaObject({
+  object,
+  active,
+  sceneWidth,
+  sceneHeight,
+  onActivate,
+}: Props) {
+  const frameHeight = object.width * (432 / 768);
+  const altitude = object.grounded
+    ? 0
+    : object.kind === "sea-turtle"
+      ? 0.1
+      : object.kind === "fish-courier"
+        ? 0.72
+        : 1;
+  const globalX = (object.x / 100) * sceneWidth;
+  const globalY = (object.y / 100) * sceneHeight;
+  const projection = projectShadow({
+    x: globalX,
+    y: globalY,
+    sceneWidth: Math.max(1, sceneWidth),
+    sceneHeight: Math.max(1, sceneHeight),
+    altitude,
+    speed: 0,
+    facing: 1,
+  });
+  const shadow = {
+    ...projection,
+    groundX: object.width / 2 + projection.groundX - globalX,
+    groundY: frameHeight / 2 + projection.groundY - globalY,
+  };
   const style = {
     left: `${object.x}%`,
     top: `${object.y}%`,
@@ -29,27 +60,21 @@ export function InteractiveSeaObject({ object, active, onActivate }: Props) {
       aria-expanded={active}
       aria-controls={active ? "active-party-detail" : undefined}
       data-active={active || undefined}
-      data-grounded={grounded || undefined}
+      data-grounded={object.grounded || undefined}
       onClick={() => onActivate(object)}
     >
-      <motion.span
-        className="sea-object-motion"
-        initial={false}
-        animate={{ y: active && !grounded ? -8 : 0, scale: active ? 1.055 : 1 }}
-        whileHover={{ y: grounded ? 0 : -6, scale: grounded ? 1.025 : 1.04 }}
-        whileTap={{ scale: 0.97 }}
-        transition={{ type: "spring", stiffness: 260, damping: 18 }}
-      >
-        <span className="sea-object-glow" aria-hidden="true" />
-        <img
-          className="sea-object-art"
-          src={object.asset}
-          alt={object.assetAlt}
-          draggable={false}
-          data-flee-fish={object.kind === "fish" || undefined}
-        />
-        <span className="sea-object-discovery" aria-hidden="true">Discover</span>
-      </motion.span>
+      <span className="sea-object-glow" aria-hidden="true" />
+      <SpriteActor
+        clip={object.clip}
+        playing={object.clip.loop || active}
+        shadow={shadow}
+        width={object.width}
+        x={object.width / 2}
+        y={frameHeight / 2}
+      />
+      <span className="sea-object-discovery" aria-hidden="true">
+        Discover
+      </span>
     </button>
   );
 }

@@ -24,6 +24,7 @@ type SpriteActorProps = {
   label?: string;
   className?: string;
   shadow?: SpriteProjection | false;
+  playing?: boolean;
 };
 
 export function SpriteActor({
@@ -35,16 +36,18 @@ export function SpriteActor({
   label,
   className = "",
   shadow = false,
+  playing = true,
 }: SpriteActorProps) {
   const [frame, setFrame] = useState(0);
 
   useEffect(() => {
+    if (!playing) return;
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     if (reducedMotion) {
-      setFrame(0);
-      return;
+      const requestId = requestAnimationFrame(() => setFrame(0));
+      return () => cancelAnimationFrame(requestId);
     }
 
     const startedAt = performance.now();
@@ -63,10 +66,11 @@ export function SpriteActor({
     };
     requestId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(requestId);
-  }, [clip.fps, clip.frames, clip.loop, clip.sheet]);
+  }, [clip.fps, clip.frames, clip.loop, clip.sheet, playing]);
 
+  const displayedFrame = playing ? frame : 0;
   const frameStyle = useMemo<CSSProperties>(() => {
-    const position = sheetPosition(frame, clip.columns, clip.rows);
+    const position = sheetPosition(displayedFrame, clip.columns, clip.rows);
     return {
       backgroundImage: `url(${clip.sheet})`,
       backgroundPosition: `${position.xPercent}% ${position.yPercent}%`,
@@ -74,7 +78,7 @@ export function SpriteActor({
       backgroundSize: `${clip.columns * 100}% ${clip.rows * 100}%`,
       aspectRatio: `${clip.frameWidth} / ${clip.frameHeight}`,
     };
-  }, [clip, frame]);
+  }, [clip, displayedFrame]);
 
   const subjectStyle: CSSProperties = {
     ...frameStyle,
@@ -85,7 +89,10 @@ export function SpriteActor({
   };
 
   return (
-    <div className={`sprite-actor-layer ${className}`.trim()} data-frame={frame}>
+    <div
+      className={`sprite-actor-layer ${className}`.trim()}
+      data-frame={displayedFrame}
+    >
       {shadow ? (
         <span
           aria-hidden="true"

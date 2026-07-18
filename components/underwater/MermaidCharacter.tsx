@@ -1,45 +1,37 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element -- layered face masking requires direct image elements */
+import { spriteCatalog } from "@/data/spriteCatalog";
+import { SpriteActor, type SpriteProjection } from "./SpriteActor";
 
-import { motion } from "framer-motion";
-import { forwardRef, useState } from "react";
+export type MermaidAction = keyof typeof spriteCatalog.mermaid;
 
-const FINAL_FACE_PATH = "/images/mermaid/baby-face.png";
-const PLACEHOLDER_FACE_PATH = "/images/mermaid/baby-face-placeholder.png";
+type MermaidCharacterProps = {
+  action: MermaidAction;
+  x: number;
+  y: number;
+  width: number;
+  facing: 1 | -1;
+  shadow: SpriteProjection;
+};
 
-export const MermaidCharacter = forwardRef<HTMLDivElement>(function MermaidCharacter(_, ref) {
-  const [faceSrc, setFaceSrc] = useState(FINAL_FACE_PATH);
-
+export function MermaidCharacter({
+  action,
+  x,
+  y,
+  width,
+  facing,
+  shadow,
+}: MermaidCharacterProps) {
   return (
-    <div ref={ref} className="mermaid-position" aria-hidden="true" data-testid="mermaid">
-      <motion.div
-        className="mermaid-float"
-        animate={{ y: [-4, 5, -4], rotate: [-1.5, 1.5, -1.5] }}
-        transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <img
-          className="mermaid-body-art"
-          src="/images/mermaid/baby-mermaid-body.png"
-          alt=""
-          draggable={false}
-        />
-        <img
-          className="mermaid-tail-art"
-          src="/images/mermaid/baby-mermaid-tail.png"
-          alt=""
-          draggable={false}
-        />
-        <img
-          className="mermaid-face-photo"
-          src={faceSrc}
-          alt=""
-          draggable={false}
-          onError={() => {
-            if (faceSrc !== PLACEHOLDER_FACE_PATH) setFaceSrc(PLACEHOLDER_FACE_PATH);
-          }}
-        />
-      </motion.div>
-    </div>
+    <SpriteActor
+      className="mermaid-actor"
+      clip={spriteCatalog.mermaid[action]}
+      facing={facing}
+      label="Liliana swimming as a mermaid"
+      shadow={shadow}
+      width={width}
+      x={x}
+      y={y}
+    />
   );
-});
+}
