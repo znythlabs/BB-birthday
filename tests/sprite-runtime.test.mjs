@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { frameAtTime, sheetPosition } from "../lib/spriteRuntime.mjs";
+import {
+  frameAtTime,
+  frameForClip,
+  sheetPosition,
+} from "../lib/spriteRuntime.mjs";
 import { mermaidAltitude, projectShadow } from "../lib/underwaterProjection.mjs";
 
 
@@ -18,6 +22,24 @@ test("sheetPosition maps a frame to its exact sheet cell", () => {
     xPercent: 66.66666666666666,
     yPercent: 50,
   });
+});
+
+test("a frame from the previous clip resets before sheet lookup", () => {
+  const staleSwimClock = { frame: 11, sheet: "/mermaid/swim.png" };
+  const idleClip = { frames: 8, sheet: "/mermaid/idle.png" };
+
+  const frame = frameForClip(staleSwimClock, idleClip, true);
+
+  assert.equal(frame, 0);
+  assert.doesNotThrow(() => sheetPosition(frame, 4, 2));
+  assert.equal(
+    frameForClip({ frame: 6, sheet: idleClip.sheet }, idleClip, true),
+    6,
+  );
+  assert.equal(
+    frameForClip({ frame: 6, sheet: idleClip.sheet }, idleClip, false),
+    0,
+  );
 });
 
 test("runtime helpers reject invalid clip geometry", () => {

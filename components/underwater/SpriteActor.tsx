@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 import type { SpriteClip } from "@/data/spriteCatalog";
-import { frameAtTime, sheetPosition } from "@/lib/spriteRuntime.mjs";
+import {
+  frameAtTime,
+  frameForClip,
+  sheetPosition,
+} from "@/lib/spriteRuntime.mjs";
 
 export type SpriteProjection = {
   groundX: number;
@@ -38,7 +42,7 @@ export function SpriteActor({
   shadow = false,
   playing = true,
 }: SpriteActorProps) {
-  const [frame, setFrame] = useState(0);
+  const [clock, setClock] = useState(() => ({ frame: 0, sheet: clip.sheet }));
 
   useEffect(() => {
     if (!playing) return;
@@ -46,7 +50,9 @@ export function SpriteActor({
       "(prefers-reduced-motion: reduce)",
     ).matches;
     if (reducedMotion) {
-      const requestId = requestAnimationFrame(() => setFrame(0));
+      const requestId = requestAnimationFrame(() =>
+        setClock({ frame: 0, sheet: clip.sheet }),
+      );
       return () => cancelAnimationFrame(requestId);
     }
 
@@ -59,7 +65,11 @@ export function SpriteActor({
         clip.frames,
         clip.loop,
       );
-      setFrame((current) => (current === nextFrame ? current : nextFrame));
+      setClock((current) =>
+        current.sheet === clip.sheet && current.frame === nextFrame
+          ? current
+          : { frame: nextFrame, sheet: clip.sheet },
+      );
       if (clip.loop || nextFrame < clip.frames - 1) {
         requestId = requestAnimationFrame(tick);
       }
@@ -68,7 +78,7 @@ export function SpriteActor({
     return () => cancelAnimationFrame(requestId);
   }, [clip.fps, clip.frames, clip.loop, clip.sheet, playing]);
 
-  const displayedFrame = playing ? frame : 0;
+  const displayedFrame = frameForClip(clock, clip, playing);
   const frameStyle = useMemo<CSSProperties>(() => {
     const position = sheetPosition(displayedFrame, clip.columns, clip.rows);
     return {
