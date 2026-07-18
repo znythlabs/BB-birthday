@@ -545,6 +545,31 @@ button { color: inherit; }
 @keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes dialog-in { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
 
+.sprite-actor-layer {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.sprite-actor-subject,
+.sprite-actor-shadow {
+  position: absolute;
+  display: block;
+  transform-origin: 50% 50%;
+  will-change: background-position, transform;
+}
+
+.sprite-actor-subject {
+  z-index: 2;
+}
+
+.sprite-actor-shadow {
+  z-index: 1;
+  mix-blend-mode: multiply;
+  transform-origin: 50% 88%;
+}
+
 @media (max-width: 760px) {
   .underwater-scene { min-height: 500px; }
   .underwater-background { object-position: center bottom; }

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { frameAtTime, sheetPosition } from "../lib/spriteRuntime.mjs";
+import { mermaidAltitude, projectShadow } from "../lib/underwaterProjection.mjs";
 
 
 test("frameAtTime loops or clamps deterministically", () => {
@@ -24,4 +25,56 @@ test("runtime helpers reject invalid clip geometry", () => {
   assert.throws(() => frameAtTime(0, 8, 0, true), /frames/);
   assert.throws(() => sheetPosition(0, 0, 2), /columns/);
   assert.throws(() => sheetPosition(8, 4, 2), /outside/);
+});
+
+test("altitude makes the exact-frame seabed projection softer and fainter", () => {
+  const near = projectShadow({
+    x: 500,
+    y: 700,
+    sceneWidth: 1000,
+    sceneHeight: 900,
+    altitude: 0,
+    speed: 0,
+    facing: 1,
+  });
+  const high = projectShadow({
+    x: 500,
+    y: 300,
+    sceneWidth: 1000,
+    sceneHeight: 900,
+    altitude: 0.8,
+    speed: 0,
+    facing: 1,
+  });
+
+  assert.ok(near.opacity > high.opacity);
+  assert.ok(near.blurPx < high.blurPx);
+  assert.ok(high.groundY > 300);
+  assert.equal(mermaidAltitude(702, 900), 0);
+  assert.equal(mermaidAltitude(100, 900), 1);
+});
+
+test("projection follows facing and stretches modestly with speed", () => {
+  const still = projectShadow({
+    x: 250,
+    y: 500,
+    sceneWidth: 1000,
+    sceneHeight: 900,
+    altitude: 0.4,
+    speed: 0,
+    facing: -1,
+  });
+  const moving = projectShadow({
+    x: 250,
+    y: 500,
+    sceneWidth: 1000,
+    sceneHeight: 900,
+    altitude: 0.4,
+    speed: 1400,
+    facing: -1,
+  });
+
+  assert.ok(still.scaleX < 0);
+  assert.ok(Math.abs(moving.scaleX) > Math.abs(still.scaleX));
+  assert.ok(moving.skewXDeg > 0);
 });
