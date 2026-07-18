@@ -10,9 +10,70 @@ from scripts.underwater_v2.deform import blend_expression, tail_wave
 from scripts.underwater_v2.matte import estimate_border_key, key_to_alpha
 from scripts.underwater_v2.pack import pack_sheet, write_manifest
 from scripts.underwater_v2.render_mermaid import render_mermaid_clips
+from scripts.underwater_v2.render_objects import render_object_clips
 
 
 class RendererTests(TestCase):
+    def test_green_chroma_edge_is_decontaminated(self):
+        image = Image.new("RGB", (8, 8), (0, 255, 0))
+        image.putpixel((3, 3), (0, 150, 0))
+        image.putpixel((4, 4), (220, 120, 180))
+
+        result = key_to_alpha(image)
+
+        green_edge = result.getpixel((3, 3))
+        self.assertGreater(green_edge[3], 0)
+        self.assertLess(green_edge[3], 160)
+        self.assertLess(green_edge[1], 40)
+        self.assertEqual(result.getpixel((4, 4)), (220, 120, 180, 255))
+
+    def test_object_clip_counts_match_contract(self):
+        expected = {
+            "pearl-shell": 8,
+            "fish-courier": 10,
+            "sea-turtle": 10,
+            "treasure-chest": 8,
+            "jellyfish": 8,
+            "crab": 8,
+        }
+        sources = {}
+        for index, asset_id in enumerate(expected):
+            image = Image.new("RGB", (320, 180), (255, 238, 3))
+            for y in range(35, 145):
+                for x in range(28, 292):
+                    image.putpixel(
+                        (x, y),
+                        (30 + index * 20, 80 + index * 10, 160 - index * 10),
+                    )
+            sources[asset_id] = image
+
+        with TemporaryDirectory() as directory:
+            root = Path(directory)
+            rendered = render_object_clips(
+                sources,
+                root / "public",
+                archive_root=root / "archive",
+                frame_size=(192, 108),
+            )
+
+            self.assertEqual(
+                {name: len(frames) for name, frames in rendered.items()},
+                expected,
+            )
+            for asset_id in ("pearl-shell", "treasure-chest"):
+                final_frame = rendered[asset_id][-1]
+                seam = final_frame.getpixel(
+                    (final_frame.width // 2, round(final_frame.height * 0.53))
+                )
+                self.assertGreater(
+                    seam[3],
+                    0,
+                    f"{asset_id} must retain an opaque interior at its open seam",
+                )
+            for asset_id in expected:
+                self.assertTrue((root / "public" / asset_id / "manifest.json").is_file())
+                self.assertTrue((root / "archive" / asset_id / "raw-unkeyed" / "dense-frames" / "frame-000.png").is_file())
+
     def test_renderer_script_resolves_package_from_any_working_directory(self):
         script = (
             Path(__file__).resolve().parents[2]

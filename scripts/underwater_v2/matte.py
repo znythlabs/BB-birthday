@@ -33,8 +33,11 @@ def key_to_alpha(
 
     rgb = image.convert("RGB")
     key = estimate_border_key(rgb)
-    key_spill = min(key[0], key[1]) - key[2]
-    yellow_screen = key_spill > 100
+    yellow_key_spill = min(key[0], key[1]) - key[2]
+    green_key_spill = key[1] - max(key[0], key[2])
+    yellow_screen = yellow_key_spill > 100
+    green_screen = green_key_spill > 100
+    key_spill = max(yellow_key_spill, green_key_spill)
     opaque_spill = max(32.0, key_spill * 0.18)
     transparent_spill = max(opaque_spill + 1, key_spill * 0.95)
     output = Image.new("RGBA", rgb.size)
@@ -58,8 +61,13 @@ def key_to_alpha(
                 ),
             )
             coverage = amount * amount * (3 - 2 * amount)
+            spill = 0
             if yellow_screen:
                 spill = min(red, green) - blue
+            elif green_screen:
+                spill = green - max(red, blue)
+
+            if yellow_screen or green_screen:
                 spill_amount = max(
                     0.0,
                     min(
@@ -89,6 +97,9 @@ def key_to_alpha(
                     max(0, green - yellow_excess),
                     blue,
                 )
+            elif green_screen and spill > opaque_spill:
+                green_excess = max(0, green - max(red, blue))
+                corrected = (red, max(0, green - green_excess), blue)
             else:
                 corrected = tuple(
                     max(
