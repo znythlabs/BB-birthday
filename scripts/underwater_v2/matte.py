@@ -1,4 +1,4 @@
-"""Remove a flat chroma backdrop while preserving source RGB pixels."""
+"""Remove a flat chroma backdrop and decontaminate only keyed edge pixels."""
 
 from math import sqrt
 from statistics import median
@@ -27,12 +27,16 @@ def key_to_alpha(
     transparent_distance: int = 18,
     opaque_distance: int = 72,
 ) -> Image.Image:
-    """Convert chroma distance to a smooth alpha channel without repainting RGB."""
+    """Convert chroma distance to alpha and remove matte spill from soft edges."""
     if opaque_distance <= transparent_distance:
         raise ValueError("opaque_distance must be greater than transparent_distance")
 
     rgb = image.convert("RGB")
     key = estimate_border_key(rgb)
+    key_spill = min(key[0], key[1]) - key[2]
+    yellow_screen = key_spill > 100
+    opaque_spill = max(32.0, key_spill * 0.18)
+    transparent_spill = max(opaque_spill + 1, key_spill * 0.95)
     output = Image.new("RGBA", rgb.size)
     source_pixels = rgb.load()
     output_pixels = output.load()
@@ -53,7 +57,52 @@ def key_to_alpha(
                     / (opaque_distance - transparent_distance),
                 ),
             )
-            alpha = round((amount * amount * (3 - 2 * amount)) * 255)
-            output_pixels[x, y] = (red, green, blue, alpha)
+            coverage = amount * amount * (3 - 2 * amount)
+            if yellow_screen:
+                spill = min(red, green) - blue
+                spill_amount = max(
+                    0.0,
+                    min(
+                        1.0,
+                        (spill - opaque_spill)
+                        / (transparent_spill - opaque_spill),
+                    ),
+                )
+                spill_coverage = 1 - (
+                    spill_amount * spill_amount * (3 - 2 * spill_amount)
+                )
+                coverage = min(coverage, spill_coverage)
+
+            alpha = round(coverage * 255)
+            if alpha == 0:
+                output_pixels[x, y] = (0, 0, 0, 0)
+                continue
+            if alpha == 255:
+                output_pixels[x, y] = (red, green, blue, 255)
+                continue
+
+            coverage = alpha / 255
+            if yellow_screen and spill > opaque_spill:
+                yellow_excess = max(0, min(red, green) - blue)
+                corrected = (
+                    max(0, red - yellow_excess),
+                    max(0, green - yellow_excess),
+                    blue,
+                )
+            else:
+                corrected = tuple(
+                    max(
+                        0,
+                        min(
+                            255,
+                            round(
+                                (channel - key_channel * (1 - coverage))
+                                / coverage
+                            ),
+                        ),
+                    )
+                    for channel, key_channel in zip((red, green, blue), key)
+                )
+            output_pixels[x, y] = (*corrected, alpha)
 
     return output
