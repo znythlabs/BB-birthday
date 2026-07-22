@@ -151,6 +151,16 @@ button { color: inherit; }
   50% { opacity: 1; transform: scaleY(1); transform-origin: top; }
 }
 
+.scroll-dive-transition { position: relative; width: 100%; height: 100vh; height: 100svh; }
+.scroll-dive-pin { position: relative; width: 100%; height: 100vh; height: 100svh; overflow: hidden; background: #078fbd; }
+.transition-video { z-index: 0; object-position: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-dive-transition,
+  .scroll-dive-pin { height: min(72svh, 720px); }
+  .transition-video { object-position: center bottom; }
+}
+
 .underwater-scene {
   position: relative;
   isolation: isolate;
