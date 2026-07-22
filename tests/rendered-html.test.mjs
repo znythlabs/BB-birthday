@@ -59,6 +59,16 @@ test("server-renders Liliana's invitation shell", async () => {
   assert.match(html, /mermaid-transparent\.webm/);
   assert.match(html, /scene-bgm-toggle/);
 });
+
+test("keeps the pinned dive transition above the following underwater scene", async () => {
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  assert.match(
+    css,
+    /\.scroll-dive-pin\s*\{[^}]*isolation:\s*isolate;[^}]*z-index:\s*1/s,
+  );
+});
+
 test("positions compact glass bubble from live geometry", async () => {
   const [scene, bubble, css] = await Promise.all([
     readFile(new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url), "utf8"),
