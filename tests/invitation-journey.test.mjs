@@ -51,3 +51,15 @@ test("journey owns Lenis and keeps the underwater scene after the transition", a
   const underwater = source.indexOf("<UnderwaterScene");
   assert.ok(welcome >= 0 && welcome < transition && transition < underwater);
 });
+
+test("underwater title uses verified artwork and semantic text", async () => {
+  const scene = await readFile(
+    new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(scene, /className="underwater-title-lockup"/);
+  assert.match(scene, /liliana-underwater-title\.png/);
+  assert.match(scene, /<h2 className="sr-only">\{eventDetails\.title\}<\/h2>/);
+  assert.doesNotMatch(scene, /className="title-bubble"/);
+});

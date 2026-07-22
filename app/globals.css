@@ -229,85 +229,22 @@ button { color: inherit; }
 .sunlight span:nth-child(2) { left: 48%; width: 20%; animation-delay: -4s; }
 .sunlight span:nth-child(3) { right: 17%; transform: rotate(-15deg); animation-delay: -7s; }
 
-.title-bubble {
+.underwater-title-lockup {
   position: absolute;
   z-index: 35;
-  top: max(18px, env(safe-area-inset-top));
+  top: max(8px, env(safe-area-inset-top));
   left: 50%;
-  width: min(560px, calc(100% - 30px));
-  padding: 8px 28px 10px;
+  width: clamp(220px, 30vw, 400px);
   transform: translateX(-50%);
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  text-align: center;
-  filter: drop-shadow(0 7px 12px rgba(1, 70, 94, 0.24));
-  cursor: default;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 14px rgba(2, 66, 92, 0.28));
 }
 
-.title-bubble::before,
-.title-bubble::after { display: none; }
-
-.title-eyebrow, .title-subtitle { margin: 0; }
-.title-eyebrow {
-  color: rgba(4, 89, 116, 0.92);
-  font-size: 0.66rem;
-  font-weight: 850;
-  letter-spacing: 0.17em;
-  text-transform: uppercase;
+.underwater-title-art {
+  display: block;
+  width: 100%;
+  height: auto;
 }
-
-.title-bubble h1 {
-  display: grid;
-  justify-items: center;
-  margin: -3px 0 0;
-  font-family: "Bodoni Moda", Georgia, serif;
-  font-weight: 600;
-  line-height: 0.84;
-  letter-spacing: -0.055em;
-}
-
-.title-name,
-.title-occasion {
-  color: transparent;
-  background: linear-gradient(180deg, #ffffff 0%, #ffe6ef 34%, #f8c9dd 58%, #ffffff 83%, #addfe3 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-stroke: 0.7px rgba(255, 255, 255, 0.86);
-  text-shadow: 0 2px 0 rgba(6, 102, 126, 0.18), 0 5px 12px rgba(3, 68, 92, 0.27);
-}
-.title-name {
-  font-size: clamp(3rem, 6.3vw, 4.85rem);
-  font-style: italic;
-}
-.title-occasion {
-  margin-top: 5px;
-  font-size: clamp(1.45rem, 3.2vw, 2.45rem);
-  font-style: normal;
-  letter-spacing: -0.035em;
-}
-
-.title-subtitle {
-  position: relative;
-  display: inline-block;
-  margin-top: 14px;
-  color: rgba(255,255,255,0.98);
-  font-size: clamp(0.72rem, 1.3vw, 0.86rem);
-  font-weight: 760;
-  letter-spacing: 0.08em;
-  text-shadow: 0 2px 8px rgba(2, 68, 91, 0.75);
-}
-.title-subtitle::before,
-.title-subtitle::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  width: 34px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.94));
-}
-.title-subtitle::before { right: calc(100% + 10px); }
-.title-subtitle::after { left: calc(100% + 10px); transform: scaleX(-1); }
 
 .interaction-hint {
   position: absolute;
@@ -622,11 +559,10 @@ button { color: inherit; }
 @media (max-width: 760px) {
   .underwater-scene { min-height: 500px; }
   .underwater-background { object-position: center bottom; }
-  .title-bubble { top: max(8px, env(safe-area-inset-top)); padding: 5px 16px 8px; }
-  .title-name { font-size: clamp(2.7rem, 13vw, 4rem); }
-  .title-occasion { font-size: clamp(1.25rem, 6.4vw, 2rem); }
-  .title-eyebrow { font-size: 0.61rem; }
-  .title-subtitle { font-size: 0.74rem; }
+  .underwater-title-lockup {
+    top: max(4px, env(safe-area-inset-top));
+    width: clamp(210px, 58vw, 300px);
+  }
   .interaction-hint { top: 22%; width: max-content; max-width: 86vw; font-size: 0.66rem; }
   .sea-object { --object-scale: 0.72; }
   .bubble-message { width: min(280px, calc(100% - 24px)); }
@@ -638,11 +574,7 @@ button { color: inherit; }
 }
 
 @media (max-height: 650px) and (orientation: landscape) {
-  .title-bubble { top: 5px; width: min(470px, calc(100% - 180px)); padding: 3px 18px 6px; }
-  .title-name { font-size: 2.65rem; }
-  .title-occasion { margin-top: 1px; font-size: 1.35rem; }
-  .title-eyebrow { font-size: 0.58rem; }
-  .title-subtitle { margin-top: 2px; font-size: 0.68rem; }
+  .underwater-title-lockup { top: 2px; width: 240px; }
   .interaction-hint { top: 22%; }
   .sea-object { --object-scale: 0.68; }
   .all-details-button { bottom: 10px; }

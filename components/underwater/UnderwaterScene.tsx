@@ -596,13 +596,15 @@ export function UnderwaterScene() {
       <BackgroundFishSchools mermaidRef={currentRef} />
       <AmbientLayers />
 
-      <header className="title-bubble">
-        <p className="title-eyebrow">{eventDetails.eyebrow}</p>
-        <h1>
-          <span className="title-name">{eventDetails.celebrantName}’s</span>
-          <span className="title-occasion">First Birthday</span>
-        </h1>
-        <p className="title-subtitle">A magical under-the-sea invitation</p>
+      <header className="underwater-title-lockup">
+        <img
+          className="underwater-title-art"
+          src="/images/ui/liliana-underwater-title.png"
+          alt=""
+          aria-hidden="true"
+          draggable={false}
+        />
+        <h2 className="sr-only">{eventDetails.title}</h2>
       </header>
 
       <div className="interaction-hint" data-hidden={hasMoved || undefined}>
