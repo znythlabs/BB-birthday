@@ -62,10 +62,16 @@ test("server-renders Liliana's invitation shell", async () => {
 
 test("keeps the pinned dive transition above the following underwater scene", async () => {
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  const normalTransitionRule = css.match(/\.scroll-dive-transition\s*\{([^}]*)\}/)?.[1] ?? "";
 
   assert.match(
     css,
     /\.scroll-dive-pin\s*\{[^}]*isolation:\s*isolate;[^}]*z-index:\s*1/s,
+  );
+  assert.doesNotMatch(normalTransitionRule, /height\s*:/);
+  assert.match(
+    css,
+    /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.scroll-dive-transition,\s*\.scroll-dive-pin\s*\{[^}]*height:\s*min\(72svh, 720px\)/,
   );
 });
 
