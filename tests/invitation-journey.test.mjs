@@ -30,6 +30,9 @@ test("transition pins and scrubs only the dive video", async () => {
   assert.match(source, /window\.innerHeight \* 3\.5/);
   assert.match(source, /transition-scrub\.mp4/);
   assert.match(source, /transition\.mp4/);
+  assert.match(source, /video\.readyState >= 1/);
+  assert.match(source, /video\.addEventListener\("loadedmetadata", syncMetadata, \{ once: true \}\)/);
+  assert.match(source, /video\.removeEventListener\("loadedmetadata", syncMetadata\)/);
   assert.doesNotMatch(source, /UnderwaterScene|MermaidCharacter|InteractiveSeaObject|BackgroundFishSchools|AmbientLayers/);
 });
 

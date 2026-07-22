@@ -13,6 +13,28 @@ export function ScrollDiveTransition() {
   const [duration, setDuration] = useState(0);
 
   useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const syncMetadata = () => {
+      const clipDuration = video.duration;
+      video.pause();
+      video.currentTime = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? scrollProgressToTime(1, clipDuration)
+        : 0;
+      setDuration(clipDuration);
+    };
+
+    if (video.readyState >= 1) {
+      syncMetadata();
+      return;
+    }
+
+    video.addEventListener("loadedmetadata", syncMetadata, { once: true });
+    return () => video.removeEventListener("loadedmetadata", syncMetadata);
+  }, []);
+
+  useEffect(() => {
     const trigger = triggerRef.current;
     const pin = pinRef.current;
     const video = videoRef.current;
@@ -60,15 +82,6 @@ export function ScrollDiveTransition() {
           playsInline
           preload="auto"
           tabIndex={-1}
-          onLoadedMetadata={(event) => {
-            const video = event.currentTarget;
-            const clipDuration = video.duration;
-            video.pause();
-            video.currentTime = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-              ? scrollProgressToTime(1, clipDuration)
-              : 0;
-            setDuration(clipDuration);
-          }}
         >
           <source src="/images/underwater/transition-scrub.mp4" type="video/mp4" />
           <source src="/images/underwater/transition.mp4" type="video/mp4" />
