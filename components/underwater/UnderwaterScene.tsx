@@ -604,7 +604,7 @@ export function UnderwaterScene() {
           aria-hidden="true"
           draggable={false}
         />
-        <h2 className="sr-only">{eventDetails.title}</h2>
+        <h2 className="sr-only">Liliana’s First Birthday</h2>
       </header>
 
       <div className="interaction-hint" data-hidden={hasMoved || undefined}>

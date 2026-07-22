@@ -26,6 +26,7 @@ test("server-renders Liliana's invitation shell", async () => {
   assert.match(html, /island\.mp4/i);
   assert.match(html, /transition-scrub\.mp4/i);
   assert.match(html, /liliana-underwater-title\.png/i);
+  assert.match(html, /<h2 class="sr-only">Liliana(?:’|&#x2019;|&#8217;)s First Birthday<\/h2>/);
   await access(new URL("../public/images/ui/liliana-underwater-title.png", import.meta.url));
 
   const welcomeIndex = html.indexOf("welcome-scene");

@@ -60,6 +60,6 @@ test("underwater title uses verified artwork and semantic text", async () => {
 
   assert.match(scene, /className="underwater-title-lockup"/);
   assert.match(scene, /liliana-underwater-title\.png/);
-  assert.match(scene, /<h2 className="sr-only">\{eventDetails\.title\}<\/h2>/);
+  assert.match(scene, /<h2 className="sr-only">Liliana’s First Birthday<\/h2>/);
   assert.doesNotMatch(scene, /className="title-bubble"/);
 });
