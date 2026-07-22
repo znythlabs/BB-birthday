@@ -72,6 +72,7 @@ test("altitude makes the exact-frame seabed projection softer and fainter", () =
   assert.ok(near.opacity > high.opacity);
   assert.ok(near.blurPx < high.blurPx);
   assert.ok(high.groundY > 300);
+  assert.ok(high.opacity >= 0.16);
   assert.equal(mermaidAltitude(702, 900), 0);
   assert.equal(mermaidAltitude(100, 900), 1);
 });

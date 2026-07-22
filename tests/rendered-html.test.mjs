@@ -24,17 +24,50 @@ test("server-renders Liliana's invitation shell", async () => {
   assert.match(html, /A little mermaid is turning one/i);
   assert.match(html, /A magical under-the-sea invitation/i);
   assert.match(html, /Open all party details/i);
-  assert.match(html, /<img[^>]*underwater-background[^>]*background-main\.png/i);
-  assert.doesNotMatch(html, /background-main\.mp4|<video/i);
+  assert.match(html, /<video[^>]*class="[^\"]*underwater-background[^\"]*"[^>]*autoplay[^>]*muted[^>]*loop[^>]*playsinline/i);
+  assert.match(html, /<source[^>]*background-main\.mp4[^>]*type="video\/mp4"/i);
+  assert.match(html, /<video[^>]*class="[^\"]*mermaid-video[^\"]*"[^>]*autoplay[^>]*muted[^>]*loop[^>]*playsinline/i);
+  assert.match(html, /<source[^>]*mermaid-transparent\.webm[^>]*type="video\/webm"/i);
   assert.match(html, /property="og:image" content="http:\/\/localhost(?::3000)?\/og\.png"/i);
   assert.match(html, /name="twitter:card" content="summary_large_image"/i);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i);
+  assert.match(html, /<audio[^>]*>/i);
+  assert.match(html, /class="[^"]*scene-bgm[^"]*"/i);
+  assert.match(html, /loop(?:="")?/i);
+  assert.match(html, /preload="auto"/i);
+  assert.match(html, /underwater%20bgm\.MP3/);
+  assert.match(html, /aria-label="(?:Mute|Unmute) background music"/i);
+  const sceneSource = await readFile(new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url), "utf8");
+  assert.match(sceneSource, /startBgm\(\)/);
+  assert.match(sceneSource, /onPointerDown=\{\(event\) => event\.stopPropagation\(\)\}/);
+  assert.doesNotMatch(sceneSource, /laughterRef|scheduleLaughter|baby%20laughter/);
+  assert.match(sceneSource, /bgmMuted/);
+  assert.match(html, /mermaid-transparent\.webm/);
+  assert.match(html, /scene-bgm-toggle/);
+});
+test("positions compact glass bubble from live geometry", async () => {
+  const [scene, bubble, css] = await Promise.all([
+    readFile(new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/underwater/BubbleMessage.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+  assert.match(scene, /position=\{objectPositions\[activeObject\.kind\]\}/);
+  assert.match(scene, /mermaidPosition=\{\{ x: mermaidVisual\.x, y: mermaidVisual\.y \}\}/);
+  assert.match(scene, /mermaidWidth=\{mermaidVisual\.width\}/);
+  assert.match(bubble, /overlapsMermaid/);
+  assert.match(css, /\.scene-bgm-toggle[\s\S]*\.all-details-button[\s\S]*cursor: pointer !important/);
+  assert.match(bubble, /sceneWidth/);
+  assert.match(bubble, /mermaidPosition/);
+  assert.match(css, /\.underwater-scene, \.underwater-scene \*/);
+  assert.match(css, /cursor:\s*none/);
+  assert.match(css, /\.bubble-message\s*\{[^}]*z-index:\s*18/);
+  assert.match(css, /backdrop-filter: blur\(/);
 });
 
 test("keeps invitation content and the exact seven-actor sprite catalog centralized", async () => {
   const [eventConfig, objects, catalog, scene, mermaid, readme] = await Promise.all([
     readFile(new URL("../data/eventDetails.ts", import.meta.url), "utf8"),
-    readFile(new URL("../data/interactiveObjects.ts", import.meta.url), "utf8"),
+    readFile(new URL("../data/seaObjects.ts", import.meta.url), "utf8"),
     readFile(new URL("../data/spriteCatalog.ts", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/MermaidCharacter.tsx", import.meta.url), "utf8"),
@@ -44,18 +77,24 @@ test("keeps invitation content and the exact seven-actor sprite catalog centrali
   assert.match(eventConfig, /celebrantName:\s*"Liliana"/);
   assert.match(scene, /requestAnimationFrame/);
   assert.match(scene, /prefers-reduced-motion/);
-  assert.match(scene, /background-main\.png/);
-  assert.match(mermaid, /SpriteActor/);
+  assert.match(scene, /background-main\.mp4/);
+  assert.match(mermaid, /mermaid-video/);
+  assert.match(mermaid, /mermaid-transparent\.webm/);
   for (const id of ["mermaid", "pearl-shell", "fish-courier", "sea-turtle", "treasure-chest", "jellyfish", "crab"]) {
     assert.match(catalog, new RegExp(`(?:"${id}"|${id}):`));
   }
   assert.match(objects, /spriteCatalog/);
-  assert.match(readme, /public\/images\/underwater-v2/);
   assert.doesNotMatch(objects, /\bicon\s*:/);
-  await access(new URL("../public/images/underwater/background-main.png", import.meta.url));
-  await access(new URL("../public/images/underwater-v2/mermaid/idle/sheet.png", import.meta.url));
-  await access(new URL("../public/images/underwater-v2/interactives/crab/sheet.png", import.meta.url));
-  await access(new URL("../public/fonts/bodoni-moda-600.woff2", import.meta.url));
+  assert.match(readme, /public\/images\/underwater-v2/);
+  await access(new URL("../public/images/underwater/background-main.mp4", import.meta.url));
+  await access(new URL("../public/images/mermaid/mermaid-transparent.webm", import.meta.url));
+  await access(new URL("../public/images/underwater-v2/interactives/pearl-transparent.webm", import.meta.url));
+  await access(new URL("../public/images/underwater-v2/interactives/fish-transparent.webm", import.meta.url));
+  await access(new URL("../public/images/underwater-v2/interactives/turtle-transparent.webm", import.meta.url));
+  await access(new URL("../public/images/underwater-v2/interactives/jellyfish-transparent.webm", import.meta.url));
+  await access(new URL("../public/images/underwater-v2/interactives/crab-transparent.webm", import.meta.url));
+  assert.match(objects, /kind: "treasure-chest"[\s\S]*?y: 90/);
+  assert.match(objects, /kind: "crab"[\s\S]*?y: 92/);
   await access(new URL("../public/fonts/bodoni-moda-600-italic.woff2", import.meta.url));
 });
 
@@ -70,13 +109,34 @@ test("uses multi-frame actors and exact-frame projections without legacy cutouts
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(objectComponent, /SpriteActor/);
-  assert.match(mermaid, /spriteCatalog\.mermaid/);
+  assert.match(objectComponent, /OBJECT_VIDEO_PATHS/);
+  assert.match(objectComponent, /<video/);
+  assert.match(objectComponent, /crab-transparent\.webm/);
+  assert.match(objectComponent, /renderSubject=\{!videoSrc\}/);
+  assert.match(objectComponent, /groundY:/);
+  assert.match(css, /\.sea-object-layer\s*\{[^}]*pointer-events:\s*none/);
+  assert.match(css, /\.sea-object-dedicated-shadow\s*\{[^}]*opacity:\s*0\.8[^}]*mix-blend-mode:\s*darken/);
+  assert.doesNotMatch(css, /\.sea-object\s*\{[^}]*isolation:\s*isolate/);
+  assert.match(css, /\.sea-object-video\s*\{[^}]*width:\s*100%/);
+  assert.match(css, /\.sea-object-video\s*\{[^}]*height:\s*100%/);
+  assert.match(css, /\.sea-object-video\s*\{[^}]*object-fit:\s*contain/);
+  assert.match(css, /\.sea-object-video\s*\{[^}]*display:\s*block/);
+  assert.match(css, /\.sprite-actor-layer\.mermaid-actor\s*\{[^}]*z-index:\s*24/);
+  assert.match(scene, /smoothToward/);
+  assert.match(scene, /faceTowardTarget/);
+  assert.match(scene, /advancePatrol/);
+  assert.match(scene, /isNear/);
+  assert.match(scene, /objectPositions/);
+  assert.match(scene, /position=\{objectPositions\[object\.kind\]\}/);
+  assert.match(mermaid, /mermaid-transparent\.webm/);
+  assert.match(mermaid, /<SpriteActor/);
+  assert.match(mermaid, /mermaid-shadow/);
+  assert.match(mermaid, /spriteCatalog\.mermaid\[action\]/);
   assert.match(spriteActor, /data-frame=\{displayedFrame\}/);
   assert.match(spriteActor, /sprite-actor-shadow/);
   assert.match(projection, /mermaidAltitude/);
   assert.match(projection, /projectShadow/);
-  assert.doesNotMatch(scene, /background-main\.mp4|baby-mermaid-body|baby-mermaid-tail|dataset\.tailFrame/);
+  assert.match(scene, /background-main\.mp4/);
   assert.doesNotMatch(mermaid, /mermaid-face-photo|baby-mermaid-body|baby-mermaid-tail/);
   assert.doesNotMatch(ambient, /ambient-fish|data-flee-fish/);
   assert.doesNotMatch(css, /\.sea-object\[data-grounded\]::before|\.mermaid-tail-art|\.mermaid-face-photo/);

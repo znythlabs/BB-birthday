@@ -28,6 +28,7 @@ type SpriteActorProps = {
   label?: string;
   className?: string;
   shadow?: SpriteProjection | false;
+  renderSubject?: boolean;
   playing?: boolean;
 };
 
@@ -40,6 +41,7 @@ export function SpriteActor({
   label,
   className = "",
   shadow = false,
+  renderSubject = true,
   playing = true,
 }: SpriteActorProps) {
   const [clock, setClock] = useState(() => ({ frame: 0, sheet: clip.sheet }));
@@ -118,13 +120,15 @@ export function SpriteActor({
           }}
         />
       ) : null}
-      <span
-        aria-label={label}
-        aria-hidden={label ? undefined : true}
-        className="sprite-actor-subject"
-        role={label ? "img" : undefined}
-        style={subjectStyle}
-      />
+      {renderSubject ? (
+        <span
+          aria-label={label}
+          aria-hidden={label ? undefined : true}
+          className="sprite-actor-subject"
+          role={label ? "img" : undefined}
+          style={subjectStyle}
+        />
+      ) : null}
     </div>
   );
 }

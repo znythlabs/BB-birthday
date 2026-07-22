@@ -1,5 +1,5 @@
 import { useEffect, useRef, type CSSProperties } from "react";
-import { interactiveObjects } from "@/data/interactiveObjects";
+import { interactiveObjects } from "@/data/seaObjects";
 
 export function PartyDetailsDialog({ onClose }: { onClose: () => void }) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);

@@ -14,11 +14,29 @@ import { eventDetails } from "@/data/eventDetails";
 import {
   interactiveObjects,
   type InteractiveSeaObjectData,
-} from "@/data/interactiveObjects";
+  type SeaObjectKind,
+} from "@/data/seaObjects";
 import { spriteCatalog } from "@/data/spriteCatalog";
 import { clamp, distanceBetween } from "@/lib/distance";
+import {
+  CRAB_PATROL_SPEED,
+  JELLYFISH_FLOAT_SPEED,
+  TURTLE_PATROL_SPEED,
+  smoothToward,
+  advancePatrol,
+  faceTowardTarget,
+  crabGroundBounds,
+  followTarget,
+  isNear,
+  jellyfishFloatBounds,
+  randomCrabWaypoint,
+  randomJellyfishWaypoint,
+  randomTurtleWaypoint,
+  turtleSurfaceBounds,
+} from "@/lib/objectMotion.mjs";
 import { mermaidAltitude, projectShadow } from "@/lib/underwaterProjection.mjs";
 import { AmbientLayers } from "./AmbientLayers";
+import { BackgroundFishSchools } from "./BackgroundFishSchools";
 import { BubbleMessage } from "./BubbleMessage";
 import { InteractiveSeaObject } from "./InteractiveSeaObject";
 import {
@@ -29,6 +47,8 @@ import { PartyDetailsDialog } from "./PartyDetailsDialog";
 import type { SpriteProjection } from "./SpriteActor";
 
 type Point = { x: number; y: number };
+type ObjectPositions = Partial<Record<SeaObjectKind, Point>>;
+type ObjectFacings = Partial<Record<SeaObjectKind, 1 | -1>>;
 type MermaidVisual = Point & {
   width: number;
   facing: 1 | -1;
@@ -38,6 +58,14 @@ type MermaidVisual = Point & {
 
 const START_POSITION = { x: 50, y: 49 } as const;
 const MERMAID_EDGE_PADDING = 76;
+const createInitialObjectPositions = (width: number, height: number): ObjectPositions =>
+  Object.fromEntries(
+    interactiveObjects.map((object) => [
+      object.kind,
+      { x: (object.x / 100) * width, y: (object.y / 100) * height },
+    ]),
+  );
+
 const EMPTY_SHADOW: SpriteProjection = {
   groundX: 0,
   groundY: 0,
@@ -62,7 +90,43 @@ export function UnderwaterScene() {
   const reducedMotionRef = useRef(false);
   const pointerMotionRef = useRef({ x: 0, y: 0, time: 0, speed: 0 });
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const jellyfishTargetRef = useRef<Point | null>(null);
+  const objectPositionsRef = useRef<ObjectPositions>({});
+  const objectFacingsRef = useRef<ObjectFacings>({});
+  const turtleTargetRef = useRef<Point | null>(null);
+  const crabTargetRef = useRef<Point | null>(null);
+  const bgmRef = useRef<HTMLAudioElement>(null);
+  const bgmStartedRef = useRef(false);
+  const [bgmMuted, setBgmMuted] = useState(true);
+  const startBgm = useCallback(() => {
+    const audio = bgmRef.current;
+    if (!audio || bgmStartedRef.current) return;
+    bgmStartedRef.current = true;
+    audio.muted = false;
+    setBgmMuted(false);
+    void audio.play().catch(() => {
+      bgmStartedRef.current = false;
+      audio.muted = true;
+      setBgmMuted(true);
+    });
+  }, []);
+  const toggleBgm = useCallback(() => {
+    const audio = bgmRef.current;
+    if (!audio) return;
+    if (bgmMuted) {
+      bgmStartedRef.current = false;
+      startBgm();
+      return;
+    }
+    audio.muted = true;
+    setBgmMuted(true);
+  }, [bgmMuted, startBgm]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  useEffect(() => {
+    startBgm();
+  }, [startBgm]);
+  const [objectFacings, setObjectFacings] = useState<ObjectFacings>({});
+  const [objectPositions, setObjectPositions] = useState<ObjectPositions>({});
   const [discovering, setDiscovering] = useState(false);
   const [showAllDetails, setShowAllDetails] = useState(false);
   const [hasMoved, setHasMoved] = useState(false);
@@ -131,7 +195,11 @@ export function UnderwaterScene() {
       pinnedIdRef.current = object.id;
       dismissedIdRef.current = null;
       updateActiveId(object.id);
-      setTargetPoint((object.x / 100) * width, (object.y / 100) * height);
+      const point = objectPositionsRef.current[object.kind] ?? {
+        x: (object.x / 100) * width,
+        y: (object.y / 100) * height,
+      };
+      setTargetPoint(point.x, point.y);
     },
     [setTargetPoint, updateActiveId],
   );
@@ -181,43 +249,177 @@ export function UnderwaterScene() {
       setSceneSize({ width, height });
 
       if (!previousSize.width || !previousSize.height) {
+        const initialPositions = createInitialObjectPositions(width, height);
+        const initialFacings = Object.fromEntries(
+          interactiveObjects.map((object) => [object.kind, 1]),
+        ) as ObjectFacings;
+        objectPositionsRef.current = initialPositions;
+        objectFacingsRef.current = initialFacings;
+        setObjectPositions(initialPositions);
+        setObjectFacings(initialFacings);
         currentRef.current = {
           x: (START_POSITION.x / 100) * width,
           y: (START_POSITION.y / 100) * height,
         };
         targetRef.current = { ...currentRef.current };
       } else {
+        const scaleX = width / previousSize.width;
+        const scaleY = height / previousSize.height;
+        const resizedPositions = Object.fromEntries(
+          Object.entries(objectPositionsRef.current).map(([kind, position]) => [
+            kind,
+            position ? { x: position.x * scaleX, y: position.y * scaleY } : position,
+          ]),
+        ) as ObjectPositions;
+        objectPositionsRef.current = resizedPositions;
+        setObjectPositions(resizedPositions);
         currentRef.current = {
-          x: (currentRef.current.x / previousSize.width) * width,
-          y: (currentRef.current.y / previousSize.height) * height,
+          x: currentRef.current.x * scaleX,
+          y: currentRef.current.y * scaleY,
         };
         targetRef.current = {
-          x: (targetRef.current.x / previousSize.width) * width,
-          y: (targetRef.current.y / previousSize.height) * height,
+          x: targetRef.current.x * scaleX,
+          y: targetRef.current.y * scaleY,
         };
+        if (turtleTargetRef.current) {
+          turtleTargetRef.current = {
+            x: turtleTargetRef.current.x * scaleX,
+            y: turtleTargetRef.current.y * scaleY,
+          };
+        }
+        if (crabTargetRef.current) {
+          crabTargetRef.current = {
+            x: crabTargetRef.current.x * scaleX,
+            y: crabTargetRef.current.y * scaleY,
+          };
+        }
+        if (jellyfishTargetRef.current) {
+          jellyfishTargetRef.current = {
+            x: jellyfishTargetRef.current.x * scaleX,
+            y: jellyfishTargetRef.current.y * scaleY,
+          };
+        }
       }
     });
     resizeObserver.observe(scene);
 
     let running = true;
     let lastVisualUpdate = 0;
+    let lastFrameAt = 0;
     let facing: 1 | -1 = 1;
     const renderFrame = (now: number) => {
-      if (!running) return;
       const current = currentRef.current;
       const target = targetRef.current;
-      const dx = target.x - current.x;
-      const dy = target.y - current.y;
-      const easing = reducedMotionRef.current ? 1 : 0.075;
-      const travelSpeed = Math.hypot(dx, dy) * easing;
-      current.x += dx * easing;
-      current.y += dy * easing;
-      pointerMotionRef.current.speed *= 0.93;
-      if (dx < -0.4) facing = -1;
-      else if (dx > 0.4) facing = 1;
+      if (!running) return;
+      const deltaSeconds = lastFrameAt
+        ? Math.min((now - lastFrameAt) / 1000, 0.05)
+        : 1 / 60;
+      lastFrameAt = now;
+      facing = faceTowardTarget(current, target, facing);
+      const movementAmount = reducedMotionRef.current ? 1 : deltaSeconds;
+      const next = reducedMotionRef.current
+        ? target
+        : smoothToward(current, target, movementAmount, 4.6);
+      const travelSpeed = deltaSeconds > 0
+        ? Math.hypot(next.x - current.x, next.y - current.y) / deltaSeconds
+        : 0;
+      current.x = next.x;
+      current.y = next.y;
+      pointerMotionRef.current.speed *= Math.exp(-5 * deltaSeconds);
 
       const { width, height } = sizeRef.current;
-      if (width && height && now - lastVisualUpdate >= 32) {
+      if (width && height && deltaSeconds > 0 && !reducedMotionRef.current) {
+        const objects = objectPositionsRef.current;
+        const fish = objects["fish-courier"];
+        const turtle = objects["sea-turtle"];
+        const crab = objects.crab;
+        const jellyfish = objects.jellyfish;
+        const jellyfishBounds = jellyfishFloatBounds(width, height);
+        if (jellyfish && !jellyfishTargetRef.current) {
+          jellyfishTargetRef.current = randomJellyfishWaypoint(jellyfishBounds);
+        }
+        if (jellyfish && jellyfishTargetRef.current && isNear(jellyfish, jellyfishTargetRef.current, 10)) {
+          jellyfishTargetRef.current = randomJellyfishWaypoint(jellyfishBounds);
+        }
+        const nextJellyfish = jellyfish && jellyfishTargetRef.current
+          ? advancePatrol(
+              jellyfish,
+              jellyfishTargetRef.current,
+              JELLYFISH_FLOAT_SPEED,
+              deltaSeconds,
+              false,
+            )
+          : jellyfish;
+        const fishTarget = fish
+          ? {
+              x: clamp(current.x - 120, 110, width - 110),
+              y: clamp(current.y - 36, height * 0.2, height * 0.92),
+            }
+          : null;
+        const nextFish = fish && fishTarget
+          ? followTarget(fish, fishTarget, 1 - Math.exp(-0.35 * deltaSeconds))
+          : fish;
+        const turtleBounds = turtleSurfaceBounds(width, height);
+        if (turtle && !turtleTargetRef.current) {
+          turtleTargetRef.current = randomTurtleWaypoint(turtleBounds);
+        }
+        const turtleStopped = turtle
+          ? isNear(turtle, current, Math.max(140, Math.min(190, Math.min(width, height) * 0.24)))
+          : true;
+        if (turtle && turtleTargetRef.current && !turtleStopped && isNear(turtle, turtleTargetRef.current, 12)) {
+          turtleTargetRef.current = randomTurtleWaypoint(turtleBounds);
+        }
+        const nextTurtle = turtle && turtleTargetRef.current
+          ? advancePatrol(
+              turtle,
+              turtleTargetRef.current,
+              TURTLE_PATROL_SPEED,
+              deltaSeconds,
+              turtleStopped,
+            )
+          : turtle;
+        const crabBounds = crabGroundBounds(width, height);
+        if (crab && !crabTargetRef.current) {
+          crabTargetRef.current = randomCrabWaypoint(crabBounds);
+        }
+        if (crab && crabTargetRef.current && isNear(crab, crabTargetRef.current, 10)) {
+          crabTargetRef.current = randomCrabWaypoint(crabBounds);
+        }
+        const nextCrab = crab && crabTargetRef.current
+          ? advancePatrol(
+              crab,
+              crabTargetRef.current,
+              CRAB_PATROL_SPEED,
+              deltaSeconds,
+              false,
+            )
+          : crab;
+        const nextObjects = {
+          ...objects,
+          ...(nextFish ? { "fish-courier": nextFish } : {}),
+          ...(nextTurtle ? { "sea-turtle": nextTurtle } : {}),
+          ...(nextCrab ? { crab: nextCrab } : {}),
+          ...(nextJellyfish ? { jellyfish: nextJellyfish } : {}),
+        };
+        const nextFacings = { ...objectFacingsRef.current };
+        if (fish && nextFish && Math.abs(nextFish.x - fish.x) > 0.01) {
+          nextFacings["fish-courier"] = nextFish.x >= fish.x ? 1 : -1;
+        }
+        if (turtle && nextTurtle && Math.abs(nextTurtle.x - turtle.x) > 0.01) {
+          nextFacings["sea-turtle"] = nextTurtle.x >= turtle.x ? 1 : -1;
+        }
+        if (crab && nextCrab && Math.abs(nextCrab.x - crab.x) > 0.01) {
+          nextFacings.crab = nextCrab.x >= crab.x ? 1 : -1;
+        }
+        objectPositionsRef.current = nextObjects;
+        objectFacingsRef.current = nextFacings;
+        if (now - lastVisualUpdate >= 16) {
+          setObjectPositions(nextObjects);
+          setObjectFacings(nextFacings);
+        }
+      }
+
+      if (width && height && now - lastVisualUpdate >= 16) {
         const altitude = mermaidAltitude(current.y, height);
         const projected = projectShadow({
           x: current.x,
@@ -228,13 +430,17 @@ export function UnderwaterScene() {
           speed: Math.max(pointerMotionRef.current.speed * 1000, travelSpeed * 60),
           facing,
         });
+        const groundedProjection = {
+          ...projected,
+          groundY: Math.max(projected.groundY, height * 0.82),
+        };
         setMermaidVisual({
           x: current.x,
           y: current.y,
           width: clamp(width * 0.3, 240, 380),
           facing,
           travelSpeed,
-          shadow: projected,
+          shadow: groundedProjection,
         });
         lastVisualUpdate = now;
       }
@@ -243,7 +449,7 @@ export function UnderwaterScene() {
         let nearest: InteractiveSeaObjectData | null = null;
         let nearestDistance = Number.POSITIVE_INFINITY;
         for (const object of interactiveObjects) {
-          const objectPoint = {
+          const objectPoint = objectPositionsRef.current[object.kind] ?? {
             x: (object.x / 100) * width,
             y: (object.y / 100) * height,
           };
@@ -309,13 +515,14 @@ export function UnderwaterScene() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      startBgm();
       if (event.key !== "Escape") return;
       if (showAllDetails) closeAllDetails();
       else if (activeIdRef.current) closeActiveDetail();
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [closeActiveDetail, closeAllDetails, showAllDetails]);
+  }, [closeActiveDetail, closeAllDetails, showAllDetails, startBgm]);
 
   const activeObject = interactiveObjects.find((object) => object.id === activeId);
   const mermaidAction: MermaidAction = discovering
@@ -331,6 +538,7 @@ export function UnderwaterScene() {
       data-dialog-open={showAllDetails || undefined}
       onPointerDown={(event) => {
         if (showAllDetails) return;
+        startBgm();
         if ((event.target as Element).closest("button")) return;
         draggingPointerRef.current = event.pointerId;
         event.currentTarget.setPointerCapture(event.pointerId);
@@ -354,13 +562,38 @@ export function UnderwaterScene() {
         draggingPointerRef.current = null;
       }}
     >
-      <img
-        className="underwater-background"
-        src="/images/underwater/background-main.png"
-        alt=""
+      <audio
+        ref={bgmRef}
+        className="scene-bgm"
+        src="/bgm/underwater%20bgm.MP3"
+        autoPlay
+        loop
+        muted={bgmMuted}
+        preload="auto"
         aria-hidden="true"
-        draggable={false}
       />
+      <button
+        type="button"
+        className="scene-bgm-toggle"
+        aria-label={`${bgmMuted ? "Unmute" : "Mute"} background music`}
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={toggleBgm}
+      >
+        {bgmMuted ? "Unmute music" : "Mute music"}
+      </button>
+      <video
+        className="underwater-background"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+        tabIndex={-1}
+      >
+        <source src="/images/underwater/background-main.mp4" type="video/mp4" />
+      </video>
+      <BackgroundFishSchools mermaidRef={currentRef} />
       <AmbientLayers />
 
       <header className="title-bubble">
@@ -385,6 +618,8 @@ export function UnderwaterScene() {
             active={activeId === object.id}
             sceneHeight={sceneSize.height}
             sceneWidth={sceneSize.width}
+            position={objectPositions[object.kind]}
+            facing={objectFacings[object.kind]}
             onActivate={activateObject}
           />
         ))}
@@ -395,11 +630,19 @@ export function UnderwaterScene() {
         facing={mermaidVisual.facing}
         shadow={mermaidVisual.shadow}
         width={mermaidVisual.width}
+        audioMuted={bgmMuted}
         x={mermaidVisual.x}
         y={mermaidVisual.y}
       />
       {activeObject ? (
-        <BubbleMessage object={activeObject} onClose={closeActiveDetail} />
+        <BubbleMessage
+          object={activeObject}
+          position={objectPositions[activeObject.kind]}
+          sceneWidth={sceneSize.width}
+          sceneHeight={sceneSize.height}
+          mermaidPosition={{ x: mermaidVisual.x, y: mermaidVisual.y }}
+          mermaidWidth={mermaidVisual.width}
+        />
       ) : null}
 
       <button
