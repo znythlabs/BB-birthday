@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "lenis/dist/lenis.css";
 
 @font-face {
   font-family: "Bodoni Moda";
@@ -30,7 +31,7 @@
 html, body { width: 100%; min-height: 100%; margin: 0; }
 
 body {
-  overflow: hidden;
+  overflow-x: hidden;
   background: var(--ocean-deep);
   color: var(--ocean-ink);
   font-family: "Avenir Next", "Nunito", "Segoe UI", sans-serif;
@@ -169,13 +170,13 @@ button { color: inherit; }
   height: 100svh;
   min-height: 520px;
   overflow: hidden;
-  overscroll-behavior: none;
-  touch-action: none;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
   user-select: none;
   cursor: none;
 }
 
- .underwater-scene[data-dialog-open] { touch-action: pan-y; cursor: none; }
+.underwater-scene[data-dialog-open] { touch-action: pan-y; cursor: none; }
 
 .underwater-background {
   position: absolute;

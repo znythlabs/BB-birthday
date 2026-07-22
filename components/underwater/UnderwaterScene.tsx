@@ -532,7 +532,7 @@ export function UnderwaterScene() {
       : "idle";
 
   return (
-    <main
+    <section
       ref={sceneRef}
       className="underwater-scene"
       data-dialog-open={showAllDetails || undefined}
@@ -658,6 +658,6 @@ export function UnderwaterScene() {
       <p className="sr-only" aria-live="polite" aria-atomic="true">
         {activeObject ? `${activeObject.label}: ${activeObject.value}` : ""}
       </p>
-    </main>
+    </section>
   );
 }

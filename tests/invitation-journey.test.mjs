@@ -32,3 +32,22 @@ test("transition pins and scrubs only the dive video", async () => {
   assert.match(source, /transition\.mp4/);
   assert.doesNotMatch(source, /UnderwaterScene|MermaidCharacter|InteractiveSeaObject|BackgroundFishSchools|AmbientLayers/);
 });
+
+test("journey owns Lenis and keeps the underwater scene after the transition", async () => {
+  const source = await readFile(
+    new URL("../components/invitation/InvitationJourney.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(source, /new Lenis/);
+  assert.match(source, /ScrollTrigger\.update/);
+  assert.match(source, /gsap\.ticker\.add/);
+  assert.match(source, /lenis\.raf\(time \* 1000\)/);
+  assert.match(source, /prefers-reduced-motion: reduce/);
+  assert.match(source, /lenis\.destroy\(\)/);
+
+  const welcome = source.indexOf("<WelcomeScene");
+  const transition = source.indexOf("<ScrollDiveTransition");
+  const underwater = source.indexOf("<UnderwaterScene");
+  assert.ok(welcome >= 0 && welcome < transition && transition < underwater);
+});

@@ -1,6 +1,6 @@
-import { UnderwaterScene } from "@/components/underwater/UnderwaterScene";
+import { InvitationJourney } from "@/components/invitation/InvitationJourney";
 
 export default function Home() {
-  return <UnderwaterScene />;
+  return <InvitationJourney />;
 }
 

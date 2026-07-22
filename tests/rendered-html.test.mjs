@@ -20,9 +20,20 @@ test("server-renders Liliana's invitation shell", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Liliana(?:’|&#x27;)s First Birthday \| Under the Sea<\/title>/i);
-  assert.match(html, /A little mermaid is turning one/i);
-  assert.match(html, /A magical under-the-sea invitation/i);
+  assert.match(html, /Liliana(?:’|&#x27;)s First Birthday/i);
+  assert.match(html, /Come swim, sparkle, and celebrate with us!/i);
+  assert.match(html, /Scroll to dive/i);
+  assert.match(html, /island\.mp4/i);
+  assert.match(html, /transition-scrub\.mp4/i);
+
+  const welcomeIndex = html.indexOf("welcome-scene");
+  const transitionIndex = html.indexOf("scroll-dive-transition");
+  const underwaterIndex = html.indexOf("underwater-scene");
+  assert.ok(welcomeIndex >= 0 && welcomeIndex < transitionIndex);
+  assert.ok(transitionIndex < underwaterIndex);
+  const welcomeHtml = html.slice(welcomeIndex, transitionIndex);
+  assert.doesNotMatch(welcomeHtml, /A little mermaid is turning one/i);
+  assert.doesNotMatch(welcomeHtml, /A magical under-the-sea invitation/i);
   assert.match(html, /Open all party details/i);
   assert.match(html, /<video[^>]*class="[^\"]*underwater-background[^\"]*"[^>]*autoplay[^>]*muted[^>]*loop[^>]*playsinline/i);
   assert.match(html, /<source[^>]*background-main\.mp4[^>]*type="video\/mp4"/i);
