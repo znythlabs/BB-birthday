@@ -76,8 +76,11 @@ const EMPTY_SHADOW: SpriteProjection = {
   skewXDeg: -5,
 };
 
-export function UnderwaterScene() {
+export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const sceneRef = useRef<HTMLElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
+  const cursorTrailRef = useRef<HTMLSpanElement>(null);
+  const cursorIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const draggingPointerRef = useRef<number | null>(null);
   const discoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -89,6 +92,9 @@ export function UnderwaterScene() {
   const dismissedIdRef = useRef<string | null>(null);
   const reducedMotionRef = useRef(false);
   const pointerMotionRef = useRef({ x: 0, y: 0, time: 0, speed: 0 });
+  const pointerTargetRef = useRef<Point | null>(null);
+  const joystickRef = useRef({ x: 0, y: 0, pointerId: null as number | null });
+  const [joystickKnob, setJoystickKnob] = useState({ x: 0, y: 0 });
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const jellyfishTargetRef = useRef<Point | null>(null);
   const objectPositionsRef = useRef<ObjectPositions>({});
@@ -123,19 +129,84 @@ export function UnderwaterScene() {
     audio.muted = true;
     setBgmMuted(true);
   }, [bgmMuted, startBgm]);
+
+  useEffect(() => {
+    const moveGlobalCursor = (event: MouseEvent) => {
+      const transform = `translate3d(${event.clientX}px, ${event.clientY}px, 0)`;
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = transform;
+        cursorRef.current.dataset.visible = "true";
+      }
+      if (cursorTrailRef.current) {
+        cursorTrailRef.current.style.transform = transform;
+        cursorTrailRef.current.dataset.visible = "true";
+      }
+      if (cursorIdleTimerRef.current) clearTimeout(cursorIdleTimerRef.current);
+      cursorIdleTimerRef.current = setTimeout(() => {
+        if (cursorRef.current) delete cursorRef.current.dataset.visible;
+        if (cursorTrailRef.current) delete cursorTrailRef.current.dataset.visible;
+      }, 2000);
+    };
+    const hideGlobalCursor = () => {
+      if (cursorRef.current) delete cursorRef.current.dataset.visible;
+      if (cursorTrailRef.current) delete cursorTrailRef.current.dataset.visible;
+    };
+    window.addEventListener("mousemove", moveGlobalCursor);
+    document.documentElement.addEventListener("mouseleave", hideGlobalCursor);
+    return () => {
+      window.removeEventListener("mousemove", moveGlobalCursor);
+      document.documentElement.removeEventListener("mouseleave", hideGlobalCursor);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalToggle = () => toggleBgm();
+    const handleGlobalEnable = () => {
+      if (!bgmMuted) return;
+      bgmStartedRef.current = false;
+      startBgm();
+    };
+    window.addEventListener("invitation-audio-toggle", handleGlobalToggle);
+    window.addEventListener("invitation-audio-enable", handleGlobalEnable);
+    window.dispatchEvent(new CustomEvent("invitation-audio-state", { detail: { muted: bgmMuted } }));
+    return () => {
+      window.removeEventListener("invitation-audio-toggle", handleGlobalToggle);
+      window.removeEventListener("invitation-audio-enable", handleGlobalEnable);
+    };
+  }, [bgmMuted, startBgm, toggleBgm]);
+
+  useEffect(() => {
+    const unlockAudio = () => {
+      startBgm();
+      window.removeEventListener("pointerdown", unlockAudio, true);
+      window.removeEventListener("keydown", unlockAudio, true);
+    };
+
+    window.addEventListener("pointerdown", unlockAudio, true);
+    window.addEventListener("keydown", unlockAudio, true);
+    return () => {
+      window.removeEventListener("pointerdown", unlockAudio, true);
+      window.removeEventListener("keydown", unlockAudio, true);
+    };
+  }, [startBgm]);
+
   const [activeId, setActiveId] = useState<string | null>(null);
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setSceneEntered(entry.intersectionRatio >= 0.9),
+      ([entry]) => setSceneEntered(active ?? entry.intersectionRatio >= 0.9),
       { threshold: [0, 0.9, 1] },
     );
 
     observer.observe(scene);
     return () => observer.disconnect();
-  }, []);
+  }, [active]);
+
+  useEffect(() => {
+    if (active !== undefined) setSceneEntered(active);
+  }, [active]);
 
   useEffect(() => {
     const scene = sceneRef.current;
@@ -218,7 +289,7 @@ export function UnderwaterScene() {
       previous.y = y;
       previous.time = now;
       pinnedIdRef.current = null;
-      setTargetPoint(x, y);
+      pointerTargetRef.current = { x, y };
     },
     [setTargetPoint],
   );
@@ -229,6 +300,7 @@ export function UnderwaterScene() {
       pinnedIdRef.current = object.id;
       dismissedIdRef.current = null;
       updateActiveId(object.id);
+      pointerTargetRef.current = null;
       const point = objectPositionsRef.current[object.kind] ?? {
         x: (object.x / 100) * width,
         y: (object.y / 100) * height,
@@ -349,11 +421,22 @@ export function UnderwaterScene() {
         ? Math.min((now - lastFrameAt) / 1000, 0.05)
         : 1 / 60;
       lastFrameAt = now;
-      facing = faceTowardTarget(current, target, facing);
+      const joystick = joystickRef.current;
+      if (joystick.pointerId !== null) {
+        const { width, height } = sizeRef.current;
+        targetRef.current = {
+          x: clamp(current.x + joystick.x * 120, MERMAID_EDGE_PADDING, width - MERMAID_EDGE_PADDING),
+          y: clamp(current.y + joystick.y * 120, Math.min(172, Math.max(118, height * 0.2)), height - MERMAID_EDGE_PADDING),
+        };
+      } else {
+        const pointerTarget = pointerTargetRef.current;
+        if (pointerTarget) targetRef.current = smoothToward(target, pointerTarget, deltaSeconds, 7);
+      }
+      facing = faceTowardTarget(current, targetRef.current, facing);
       const movementAmount = reducedMotionRef.current ? 1 : deltaSeconds;
       const next = reducedMotionRef.current
         ? target
-        : smoothToward(current, target, movementAmount, 4.6);
+        : smoothToward(current, targetRef.current, movementAmount, 3.2);
       const travelSpeed = deltaSeconds > 0
         ? Math.hypot(next.x - current.x, next.y - current.y) / deltaSeconds
         : 0;
@@ -543,6 +626,7 @@ export function UnderwaterScene() {
   useEffect(
     () => () => {
       if (discoveryTimerRef.current) clearTimeout(discoveryTimerRef.current);
+      if (cursorIdleTimerRef.current) clearTimeout(cursorIdleTimerRef.current);
     },
     [],
   );
@@ -580,23 +664,45 @@ export function UnderwaterScene() {
         moveTargetFromPointer(event);
       }}
       onPointerMove={(event) => {
-        if (showAllDetails) return;
-        if (
-          event.pointerType === "mouse" ||
-          draggingPointerRef.current === event.pointerId
-        ) {
-          moveTargetFromPointer(event);
+        if (event.pointerType === "mouse") {
+          const scene = event.currentTarget.getBoundingClientRect();
+          const transform = `translate3d(${event.clientX - scene.left}px, ${event.clientY - scene.top}px, 0)`;
+          if (cursorRef.current) {
+            cursorRef.current.style.transform = transform;
+            cursorRef.current.dataset.visible = "true";
+          }
+          if (cursorTrailRef.current) {
+            cursorTrailRef.current.style.transform = transform;
+            cursorTrailRef.current.dataset.visible = "true";
+          }
+          if (cursorIdleTimerRef.current) clearTimeout(cursorIdleTimerRef.current);
+          cursorIdleTimerRef.current = setTimeout(() => {
+            if (cursorRef.current) delete cursorRef.current.dataset.visible;
+            if (cursorTrailRef.current) delete cursorTrailRef.current.dataset.visible;
+          }, 2000);
         }
+        if (showAllDetails) return;
+        if (event.pointerType === "mouse" || draggingPointerRef.current === event.pointerId) moveTargetFromPointer(event);
+      }}
+      onPointerLeave={() => {
+        pointerTargetRef.current = null;
+        if (cursorIdleTimerRef.current) clearTimeout(cursorIdleTimerRef.current);
+        if (cursorRef.current) delete cursorRef.current.dataset.visible;
+        if (cursorTrailRef.current) delete cursorTrailRef.current.dataset.visible;
       }}
       onPointerUp={(event) => {
         if (draggingPointerRef.current === event.pointerId) {
           draggingPointerRef.current = null;
         }
+        if (event.pointerType !== "mouse") pointerTargetRef.current = null;
       }}
       onPointerCancel={() => {
         draggingPointerRef.current = null;
+        pointerTargetRef.current = null;
       }}
     >
+      <span ref={cursorTrailRef} className="game-cursor-trail" aria-hidden="true" />
+      <span ref={cursorRef} className="game-cursor-dot" aria-hidden="true" />
       <audio
         ref={bgmRef}
         className="scene-bgm"
@@ -609,7 +715,7 @@ export function UnderwaterScene() {
       />
       <button
         type="button"
-        className="scene-bgm-toggle"
+        className="scene-bgm-toggle scene-bgm-toggle-local"
         aria-label={`${bgmMuted ? "Unmute" : "Mute"} background music`}
         onPointerDown={(event) => event.stopPropagation()}
         onClick={toggleBgm}
@@ -626,7 +732,7 @@ export function UnderwaterScene() {
         aria-hidden="true"
         tabIndex={-1}
       >
-        <source src="/images/underwater/background-main.mp4" type="video/mp4" />
+        <source src="/images/underwater/newunderwater.mp4" type="video/mp4" />
       </video>
       <BackgroundFishSchools mermaidRef={currentRef} />
       <AmbientLayers />
@@ -641,11 +747,6 @@ export function UnderwaterScene() {
         />
         <h2 className="sr-only">Liliana’s First Birthday</h2>
       </header>
-
-      <div className="interaction-hint" data-hidden={hasMoved || undefined}>
-        <span className="hint-shimmer" aria-hidden="true" />
-        <span>Move, tap, or drag to guide Liliana</span>
-      </div>
 
       <div className="sea-object-layer">
         {interactiveObjects.map((object) => (
@@ -682,13 +783,69 @@ export function UnderwaterScene() {
         />
       ) : null}
 
+      <div
+        className="mobile-joystick"
+        aria-label="Mermaid movement joystick"
+        role="group"
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          event.currentTarget.setPointerCapture(event.pointerId);
+          joystickRef.current.pointerId = event.pointerId;
+          setHasMoved(true);
+        }}
+        onPointerMove={(event) => {
+          if (joystickRef.current.pointerId !== event.pointerId) return;
+          const box = event.currentTarget.getBoundingClientRect();
+          const x = event.clientX - (box.left + box.width / 2);
+          const y = event.clientY - (box.top + box.height / 2);
+          const distance = Math.hypot(x, y) || 1;
+          const scale = Math.min(1, 42 / distance);
+          const knob = { x: x * scale, y: y * scale };
+          joystickRef.current.x = knob.x / 42;
+          joystickRef.current.y = knob.y / 42;
+          setJoystickKnob(knob);
+        }}
+        onPointerUp={(event) => {
+          if (joystickRef.current.pointerId !== event.pointerId) return;
+          joystickRef.current = { x: 0, y: 0, pointerId: null };
+          setJoystickKnob({ x: 0, y: 0 });
+        }}
+        onPointerCancel={() => {
+          joystickRef.current = { x: 0, y: 0, pointerId: null };
+          setJoystickKnob({ x: 0, y: 0 });
+        }}
+      >
+        <span className="mobile-joystick-knob" style={{ transform: `translate(${joystickKnob.x}px, ${joystickKnob.y}px)` }} />
+      </div>
+
+      <div className="rotate-device-prompt" role="status">
+        <span className="rotate-device-icon" aria-hidden="true">↻</span>
+        <strong>Play in landscape</strong>
+        <span>Rotate your device for full underwater controls</span>
+        <button
+          type="button"
+          className="rotate-device-button"
+          onClick={async () => {
+            try {
+              if (!document.fullscreenElement) await sceneRef.current?.requestFullscreen();
+              const orientation = screen.orientation as ScreenOrientation & { lock?: (mode: "landscape") => Promise<void> };
+              await orientation.lock?.("landscape");
+            } catch {
+              // ponytail: iOS blocks orientation lock; physical rotation remains fallback.
+            }
+          }}
+        >
+          Enter landscape
+        </button>
+      </div>
+
       <button
         type="button"
         className="all-details-button"
         onClick={openAllDetails}
       >
         <span className="button-pearl" aria-hidden="true" />
-        Open all party details
+        Party details
       </button>
       {showAllDetails ? <PartyDetailsDialog onClose={closeAllDetails} /> : null}
 

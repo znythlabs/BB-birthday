@@ -4,20 +4,29 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useEffect, useRef, useState } from "react";
 
+import { UnderwaterScene } from "@/components/underwater/UnderwaterScene";
 import { eventDetails } from "@/data/eventDetails";
 import {
   createRafVideoSeeker,
   scrollProgressToTime,
 } from "@/lib/scrollVideo.mjs";
 
-export function WelcomeDiveSequence() {
+export function WelcomeDiveSequence({
+  adventureStarted,
+  onStartAdventure,
+}: {
+  adventureStarted: boolean;
+  onStartAdventure: () => void;
+}) {
   const triggerRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
   const islandRef = useRef<HTMLVideoElement>(null);
   const transitionRef = useRef<HTMLVideoElement>(null);
-  const underwaterRef = useRef<HTMLVideoElement>(null);
+  const underwaterRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const shadeRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(0);
+  const [underwaterActive, setUnderwaterActive] = useState(false);
 
   useEffect(() => {
     const video = transitionRef.current;
@@ -51,6 +60,7 @@ export function WelcomeDiveSequence() {
     const transition = transitionRef.current;
     const underwater = underwaterRef.current;
     const content = contentRef.current;
+    const shade = shadeRef.current;
     if (
       !trigger ||
       !pin ||
@@ -58,6 +68,7 @@ export function WelcomeDiveSequence() {
       !transition ||
       !underwater ||
       !content ||
+      !shade ||
       duration <= 0
     ) {
       return;
@@ -65,27 +76,27 @@ export function WelcomeDiveSequence() {
 
     gsap.registerPlugin(ScrollTrigger);
     transition.pause();
-    underwater.pause();
-    underwater.currentTime = 0;
 
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
       const seeker = createRafVideoSeeker(transition);
 
       const applyProgress = (progress: number) => {
-        const transitionMix = Math.min(1, progress / 0.03);
+        const transitionMix = Math.min(1, progress / 0.08);
         const copyExit = Math.min(1, progress / 0.1);
         const underwaterHandoff = Math.min(
           1,
-          Math.max(0, (progress - 0.82) / 0.18),
+          Math.max(0, (progress - 0.9) / 0.1),
         );
 
-        seeker.seek(scrollProgressToTime(progress, duration));
-        gsap.set(island, { opacity: 1 - transitionMix });
-        gsap.set(transition, {
-          opacity: transitionMix * (1 - underwaterHandoff),
-        });
+        // Hold transition's final frame while underwater scene crossfades over it.
+        seeker.seek(scrollProgressToTime(Math.min(1, progress / 0.9), duration));
+        setUnderwaterActive((active) => underwaterHandoff > 0 || active);
+        // Keep lower layer opaque; fading both layers creates a dark midpoint.
+        gsap.set(island, { opacity: 1 });
+        gsap.set(transition, { opacity: transitionMix });
         gsap.set(underwater, { opacity: underwaterHandoff });
+        gsap.set(shade, { opacity: 1 - underwaterHandoff });
         gsap.set(content, {
           opacity: 1 - copyExit,
           yPercent: -18 * copyExit,
@@ -149,28 +160,17 @@ export function WelcomeDiveSequence() {
           tabIndex={-1}
         >
           <source
-            src="/images/underwater/transition-scrub-60.mp4"
+            src="/images/underwater/transition-scrub-smooth.mp4"
             type="video/mp4"
           />
           <source src="/images/underwater/transition.mp4" type="video/mp4" />
         </video>
 
-        <video
-          ref={underwaterRef}
-          className="welcome-dive-underwater"
-          muted
-          playsInline
-          preload="auto"
-          aria-hidden="true"
-          tabIndex={-1}
-        >
-          <source
-            src="/images/underwater/background-main.mp4"
-            type="video/mp4"
-          />
-        </video>
+        <div ref={underwaterRef} className="welcome-dive-underwater">
+          <UnderwaterScene active={underwaterActive} />
+        </div>
 
-        <div className="welcome-shade" aria-hidden="true" />
+        <div ref={shadeRef} className="welcome-shade" aria-hidden="true" />
 
         <div ref={contentRef} className="welcome-dive-content">
           <div className="welcome-copy">
@@ -179,6 +179,11 @@ export function WelcomeDiveSequence() {
               <span>First Birthday</span>
             </h1>
             <p>{eventDetails.invitationMessage}</p>
+            {!adventureStarted ? (
+              <button type="button" className="start-adventure-button" onClick={onStartAdventure}>
+                Start the adventure
+              </button>
+            ) : null}
           </div>
 
           <div className="welcome-scroll-cue" aria-hidden="true">

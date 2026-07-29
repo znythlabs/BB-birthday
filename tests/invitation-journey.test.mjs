@@ -13,7 +13,7 @@ test("unified welcome dive sequence owns both videos and approved copy", async (
   assert.match(source, /transition-scrub-60\.mp4/);
   assert.match(source, /transition\.mp4/);
   assert.match(source, /className="welcome-dive-underwater"/);
-  assert.match(source, /background-main\.mp4/);
+  assert.match(source, /newunderwater\.mp4/);
   assert.match(source, /eventDetails\.title/);
   assert.match(source, /eventDetails\.invitationMessage/);
   assert.match(source, /Scroll to dive/);
@@ -39,7 +39,8 @@ test("unified sequence pins once and directly updates the coalesced playhead", a
   assert.match(source, /onUpdate:\s*\(self\)/);
   assert.match(source, /progress \/ 0\.03/);
   assert.match(source, /progress \/ 0\.1/);
-  assert.match(source, /\(progress - 0\.82\) \/ 0\.18/);
+  assert.match(source, /\(progress - 0\.9\) \/ 0\.1/);
+  assert.match(source, /Math\.min\(1, progress \/ 0\.9\)/);
   assert.match(source, /gsap\.set\(underwater/);
   assert.doesNotMatch(source, /scrub:\s*0\.15/);
   assert.match(source, /video\.readyState >= 1/);
@@ -84,6 +85,7 @@ test("underwater title keeps the compact verified artwork treatment", async () =
   assert.match(scene, /data-transitioning=\{!sceneEntered \|\| undefined\}/);
   assert.match(scene, /new IntersectionObserver/);
   assert.match(scene, /backgroundRef/);
+  assert.match(scene, /newunderwater\.mp4/);
   assert.match(
     scene,
     /querySelectorAll<HTMLVideoElement>\("video"\)/,

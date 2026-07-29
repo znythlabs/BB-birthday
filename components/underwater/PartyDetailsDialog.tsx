@@ -32,7 +32,7 @@ export function PartyDetailsDialog({ onClose }: { onClose: () => void }) {
     <div className="details-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section ref={dialogRef} className="details-dialog" role="dialog" aria-modal="true" aria-labelledby="details-dialog-title">
         <div className="details-dialog-heading">
-          <div><p className="details-dialog-kicker">All the treasures</p><h2 id="details-dialog-title">Liliana’s party details</h2></div>
+          <div><p className="details-dialog-kicker">You’re invited</p><h2 id="details-dialog-title">Party details</h2><p className="details-dialog-intro">Everything you need for Liliana’s underwater celebration.</p></div>
           <button ref={closeButtonRef} type="button" className="details-dialog-close" onClick={onClose} aria-label="Close all party details">×</button>
         </div>
         <dl className="details-list">

@@ -36,14 +36,14 @@ test("server-renders Liliana's invitation shell", async () => {
   const sequenceHtml = html.slice(sequenceIndex, underwaterIndex);
   assert.match(sequenceHtml, /island\.mp4/i);
   assert.match(sequenceHtml, /transition-scrub-60\.mp4/i);
-  assert.match(sequenceHtml, /background-main\.mp4/i);
+  assert.match(sequenceHtml, /newunderwater\.mp4/i);
   assert.doesNotMatch(sequenceHtml, /Open all party details/i);
   assert.match(html, /<video[^>]*class="[^\"]*underwater-background[^\"]*"[^>]*muted[^>]*loop[^>]*playsinline/i);
   assert.doesNotMatch(
     html,
     /<video[^>]*class="[^\"]*underwater-background[^\"]*"[^>]*autoplay/i,
   );
-  assert.match(html, /<source[^>]*background-main\.mp4[^>]*type="video\/mp4"/i);
+  assert.match(html, /<source[^>]*newunderwater\.mp4[^>]*type="video\/mp4"/i);
   assert.match(html, /<video[^>]*class="[^\"]*mermaid-video[^\"]*"[^>]*autoplay[^>]*muted[^>]*loop[^>]*playsinline/i);
   assert.match(html, /<source[^>]*mermaid-transparent\.webm[^>]*type="video\/webm"/i);
   assert.match(html, /property="og:image" content="http:\/\/localhost(?::3000)?\/og\.png"/i);
@@ -114,7 +114,7 @@ test("keeps invitation content and the exact seven-actor sprite catalog centrali
   assert.match(eventConfig, /celebrantName:\s*"Liliana"/);
   assert.match(scene, /requestAnimationFrame/);
   assert.match(scene, /prefers-reduced-motion/);
-  assert.match(scene, /background-main\.mp4/);
+  assert.match(scene, /newunderwater\.mp4/);
   assert.match(mermaid, /mermaid-video/);
   assert.match(mermaid, /mermaid-transparent\.webm/);
   for (const id of ["mermaid", "pearl-shell", "fish-courier", "sea-turtle", "treasure-chest", "jellyfish", "crab"]) {
@@ -173,7 +173,7 @@ test("uses multi-frame actors and exact-frame projections without legacy cutouts
   assert.match(spriteActor, /sprite-actor-shadow/);
   assert.match(projection, /mermaidAltitude/);
   assert.match(projection, /projectShadow/);
-  assert.match(scene, /background-main\.mp4/);
+  assert.match(scene, /newunderwater\.mp4/);
   assert.doesNotMatch(mermaid, /mermaid-face-photo|baby-mermaid-body|baby-mermaid-tail/);
   assert.doesNotMatch(ambient, /ambient-fish|data-flee-fish/);
   assert.doesNotMatch(css, /\.sea-object\[data-grounded\]::before|\.mermaid-tail-art|\.mermaid-face-photo/);
