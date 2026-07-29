@@ -62,6 +62,25 @@ test("waits for an active decoder seek and then applies the latest target", () =
   assert.equal(video.currentTime, 5);
 });
 
+test("does not seek more finely than a 60 fps source frame", () => {
+  const video = { currentTime: 4, seeking: false };
+  const callbacks = new Map();
+  let requests = 0;
+  const seeker = createRafVideoSeeker(video, {
+    requestFrame(callback) {
+      requests += 1;
+      callbacks.set(requests, callback);
+      return requests;
+    },
+    cancelFrame() {},
+  });
+
+  seeker.seek(4 + 1 / 120);
+  callbacks.get(1)();
+
+  assert.equal(video.currentTime, 4);
+});
+
 test("skips immaterial seeks and cancels a pending frame", () => {
   const video = { currentTime: 4, seeking: false };
   const callbacks = new Map();

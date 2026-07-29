@@ -15,6 +15,7 @@ export function WelcomeDiveSequence() {
   const pinRef = useRef<HTMLDivElement>(null);
   const islandRef = useRef<HTMLVideoElement>(null);
   const transitionRef = useRef<HTMLVideoElement>(null);
+  const underwaterRef = useRef<HTMLVideoElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(0);
 
@@ -48,12 +49,14 @@ export function WelcomeDiveSequence() {
     const pin = pinRef.current;
     const island = islandRef.current;
     const transition = transitionRef.current;
+    const underwater = underwaterRef.current;
     const content = contentRef.current;
     if (
       !trigger ||
       !pin ||
       !island ||
       !transition ||
+      !underwater ||
       !content ||
       duration <= 0
     ) {
@@ -62,6 +65,8 @@ export function WelcomeDiveSequence() {
 
     gsap.registerPlugin(ScrollTrigger);
     transition.pause();
+    underwater.pause();
+    underwater.currentTime = 0;
 
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
@@ -70,10 +75,17 @@ export function WelcomeDiveSequence() {
       const applyProgress = (progress: number) => {
         const transitionMix = Math.min(1, progress / 0.03);
         const copyExit = Math.min(1, progress / 0.1);
+        const underwaterHandoff = Math.min(
+          1,
+          Math.max(0, (progress - 0.82) / 0.18),
+        );
 
         seeker.seek(scrollProgressToTime(progress, duration));
         gsap.set(island, { opacity: 1 - transitionMix });
-        gsap.set(transition, { opacity: transitionMix });
+        gsap.set(transition, {
+          opacity: transitionMix * (1 - underwaterHandoff),
+        });
+        gsap.set(underwater, { opacity: underwaterHandoff });
         gsap.set(content, {
           opacity: 1 - copyExit,
           yPercent: -18 * copyExit,
@@ -137,10 +149,25 @@ export function WelcomeDiveSequence() {
           tabIndex={-1}
         >
           <source
-            src="/images/underwater/transition-scrub.mp4"
+            src="/images/underwater/transition-scrub-60.mp4"
             type="video/mp4"
           />
           <source src="/images/underwater/transition.mp4" type="video/mp4" />
+        </video>
+
+        <video
+          ref={underwaterRef}
+          className="welcome-dive-underwater"
+          muted
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          tabIndex={-1}
+        >
+          <source
+            src="/images/underwater/background-main.mp4"
+            type="video/mp4"
+          />
         </video>
 
         <div className="welcome-shade" aria-hidden="true" />

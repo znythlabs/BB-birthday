@@ -96,8 +96,10 @@ export function UnderwaterScene() {
   const turtleTargetRef = useRef<Point | null>(null);
   const crabTargetRef = useRef<Point | null>(null);
   const bgmRef = useRef<HTMLAudioElement>(null);
+  const backgroundRef = useRef<HTMLVideoElement>(null);
   const bgmStartedRef = useRef(false);
   const [bgmMuted, setBgmMuted] = useState(true);
+  const [sceneEntered, setSceneEntered] = useState(false);
   const startBgm = useCallback(() => {
     const audio = bgmRef.current;
     if (!audio || bgmStartedRef.current) return;
@@ -123,8 +125,40 @@ export function UnderwaterScene() {
   }, [bgmMuted, startBgm]);
   const [activeId, setActiveId] = useState<string | null>(null);
   useEffect(() => {
+    const scene = sceneRef.current;
+    if (!scene) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setSceneEntered(entry.intersectionRatio >= 0.9),
+      { threshold: [0, 0.9, 1] },
+    );
+
+    observer.observe(scene);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const scene = sceneRef.current;
+    const background = backgroundRef.current;
+    if (!scene || !background) return;
+
+    const videos = Array.from(
+      scene.querySelectorAll<HTMLVideoElement>("video"),
+    );
+    const pauseVideos = () => videos.forEach((video) => video.pause());
+
+    if (!sceneEntered) {
+      pauseVideos();
+      if (background.readyState >= 1) background.currentTime = 0;
+      scene.addEventListener("play", pauseVideos, true);
+      return () => scene.removeEventListener("play", pauseVideos, true);
+    }
+
+    videos.forEach((video) => {
+      void video.play().catch(() => {});
+    });
     startBgm();
-  }, [startBgm]);
+  }, [sceneEntered, startBgm]);
   const [objectFacings, setObjectFacings] = useState<ObjectFacings>({});
   const [objectPositions, setObjectPositions] = useState<ObjectPositions>({});
   const [discovering, setDiscovering] = useState(false);
@@ -535,6 +569,7 @@ export function UnderwaterScene() {
     <section
       ref={sceneRef}
       className="underwater-scene"
+      data-transitioning={!sceneEntered || undefined}
       data-dialog-open={showAllDetails || undefined}
       onPointerDown={(event) => {
         if (showAllDetails) return;
@@ -582,8 +617,8 @@ export function UnderwaterScene() {
         {bgmMuted ? "Unmute music" : "Mute music"}
       </button>
       <video
+        ref={backgroundRef}
         className="underwater-background"
-        autoPlay
         muted
         loop
         playsInline

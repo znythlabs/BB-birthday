@@ -24,7 +24,7 @@ test("server-renders Liliana's invitation shell", async () => {
   assert.match(html, /Come swim, sparkle, and celebrate with us!/i);
   assert.match(html, /Scroll to dive/i);
   assert.match(html, /island\.mp4/i);
-  assert.match(html, /transition-scrub\.mp4/i);
+  assert.match(html, /transition-scrub-60\.mp4/i);
   assert.match(html, /liliana-underwater-title\.png/i);
   assert.match(html, /<h2 class="sr-only">Liliana(?:’|&#x2019;|&#8217;)s First Birthday<\/h2>/);
   await access(new URL("../public/images/ui/liliana-underwater-title.png", import.meta.url));
@@ -35,9 +35,14 @@ test("server-renders Liliana's invitation shell", async () => {
   assert.doesNotMatch(html, /scroll-dive-transition/);
   const sequenceHtml = html.slice(sequenceIndex, underwaterIndex);
   assert.match(sequenceHtml, /island\.mp4/i);
-  assert.match(sequenceHtml, /transition-scrub\.mp4/i);
+  assert.match(sequenceHtml, /transition-scrub-60\.mp4/i);
+  assert.match(sequenceHtml, /background-main\.mp4/i);
   assert.doesNotMatch(sequenceHtml, /Open all party details/i);
-  assert.match(html, /<video[^>]*class="[^\"]*underwater-background[^\"]*"[^>]*autoplay[^>]*muted[^>]*loop[^>]*playsinline/i);
+  assert.match(html, /<video[^>]*class="[^\"]*underwater-background[^\"]*"[^>]*muted[^>]*loop[^>]*playsinline/i);
+  assert.doesNotMatch(
+    html,
+    /<video[^>]*class="[^\"]*underwater-background[^\"]*"[^>]*autoplay/i,
+  );
   assert.match(html, /<source[^>]*background-main\.mp4[^>]*type="video\/mp4"/i);
   assert.match(html, /<video[^>]*class="[^\"]*mermaid-video[^\"]*"[^>]*autoplay[^>]*muted[^>]*loop[^>]*playsinline/i);
   assert.match(html, /<source[^>]*mermaid-transparent\.webm[^>]*type="video\/webm"/i);
@@ -69,7 +74,12 @@ test("keeps one unified media stage above the normal-flow underwater handoff", a
   );
   assert.doesNotMatch(sequenceRule, /height\s*:/);
   assert.match(css, /\.welcome-dive-transition\s*\{[^}]*opacity:\s*0/);
+  assert.match(css, /\.welcome-dive-underwater\s*\{[^}]*opacity:\s*0/);
   assert.doesNotMatch(css, /\.scroll-dive-transition\s*\{/);
+  assert.match(
+    css,
+    /\.underwater-scene\[data-transitioning\]\s*>\s*:not\(\.underwater-background\)/,
+  );
 });
 
 test("positions compact glass bubble from live geometry", async () => {

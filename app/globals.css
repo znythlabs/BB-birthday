@@ -74,7 +74,8 @@ button { color: inherit; }
 }
 
 .welcome-dive-island,
-.welcome-dive-transition {
+.welcome-dive-transition,
+.welcome-dive-underwater {
   position: absolute;
   inset: 0;
   display: block;
@@ -83,13 +84,19 @@ button { color: inherit; }
   object-fit: cover;
   object-position: center;
   pointer-events: none;
+  will-change: opacity;
 }
 
 .welcome-dive-island {
-  z-index: -2;
+  z-index: -3;
 }
 
 .welcome-dive-transition {
+  z-index: -2;
+  opacity: 0;
+}
+
+.welcome-dive-underwater {
   z-index: -1;
   opacity: 0;
 }
@@ -192,6 +199,12 @@ button { color: inherit; }
 }
 
 .underwater-scene[data-dialog-open] { touch-action: pan-y; cursor: none; }
+
+.underwater-scene[data-transitioning] > :not(.underwater-background) {
+  opacity: 0 !important;
+  visibility: hidden;
+  pointer-events: none !important;
+}
 
 .underwater-background {
   position: absolute;

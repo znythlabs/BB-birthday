@@ -10,8 +10,10 @@ test("unified welcome dive sequence owns both videos and approved copy", async (
 
   assert.match(source, /className="welcome-dive-sequence"/);
   assert.match(source, /island\.mp4/);
-  assert.match(source, /transition-scrub\.mp4/);
+  assert.match(source, /transition-scrub-60\.mp4/);
   assert.match(source, /transition\.mp4/);
+  assert.match(source, /className="welcome-dive-underwater"/);
+  assert.match(source, /background-main\.mp4/);
   assert.match(source, /eventDetails\.title/);
   assert.match(source, /eventDetails\.invitationMessage/);
   assert.match(source, /Scroll to dive/);
@@ -37,6 +39,8 @@ test("unified sequence pins once and directly updates the coalesced playhead", a
   assert.match(source, /onUpdate:\s*\(self\)/);
   assert.match(source, /progress \/ 0\.03/);
   assert.match(source, /progress \/ 0\.1/);
+  assert.match(source, /\(progress - 0\.82\) \/ 0\.18/);
+  assert.match(source, /gsap\.set\(underwater/);
   assert.doesNotMatch(source, /scrub:\s*0\.15/);
   assert.match(source, /video\.readyState >= 1/);
   assert.match(
@@ -77,5 +81,17 @@ test("underwater title keeps the compact verified artwork treatment", async () =
   assert.match(scene, /className="underwater-title-lockup"/);
   assert.match(scene, /liliana-underwater-title\.png/);
   assert.match(scene, /<h2 className="sr-only">Liliana’s First Birthday<\/h2>/);
+  assert.match(scene, /data-transitioning=\{!sceneEntered \|\| undefined\}/);
+  assert.match(scene, /new IntersectionObserver/);
+  assert.match(scene, /backgroundRef/);
+  assert.match(
+    scene,
+    /querySelectorAll<HTMLVideoElement>\("video"\)/,
+  );
+  assert.match(scene, /addEventListener\("play", pauseVideos, true\)/);
+  assert.doesNotMatch(
+    scene,
+    /className="underwater-background"\s+autoPlay/,
+  );
   assert.doesNotMatch(scene, /className="title-bubble"/);
 });
