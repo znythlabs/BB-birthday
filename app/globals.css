@@ -54,9 +54,15 @@ button { color: inherit; }
 
 .invitation-journey { width: 100%; background: var(--ocean-deep); }
 
-.welcome-scene {
+.welcome-dive-sequence {
+  position: relative;
+  width: 100%;
+}
+
+.welcome-dive-pin {
   position: relative;
   isolation: isolate;
+  z-index: 1;
   display: grid;
   place-items: center;
   width: 100%;
@@ -64,12 +70,12 @@ button { color: inherit; }
   height: 100svh;
   min-height: 520px;
   overflow: hidden;
+  background: #078fbd;
 }
 
-.welcome-background,
-.transition-video {
+.welcome-dive-island,
+.welcome-dive-transition {
   position: absolute;
-  z-index: -2;
   inset: 0;
   display: block;
   width: 100%;
@@ -79,14 +85,33 @@ button { color: inherit; }
   pointer-events: none;
 }
 
+.welcome-dive-island {
+  z-index: -2;
+}
+
+.welcome-dive-transition {
+  z-index: -1;
+  opacity: 0;
+}
+
 .welcome-shade {
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   inset: 0;
   background:
     linear-gradient(180deg, rgba(3, 77, 121, 0.08), rgba(3, 71, 104, 0.02) 45%, rgba(3, 61, 91, 0.28)),
     radial-gradient(circle at 50% 48%, rgba(2, 52, 77, 0.02) 24%, rgba(2, 48, 73, 0.18) 100%);
   pointer-events: none;
+}
+
+.welcome-dive-content {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  will-change: opacity, transform;
 }
 
 .welcome-copy {
@@ -150,16 +175,6 @@ button { color: inherit; }
 @keyframes scroll-cue {
   0%, 100% { opacity: 0.35; transform: scaleY(0.55); transform-origin: top; }
   50% { opacity: 1; transform: scaleY(1); transform-origin: top; }
-}
-
-.scroll-dive-transition { position: relative; width: 100%; }
-.scroll-dive-pin { position: relative; isolation: isolate; z-index: 1; width: 100%; height: 100vh; height: 100svh; overflow: hidden; background: #078fbd; }
-.transition-video { z-index: 0; object-position: center; }
-
-@media (prefers-reduced-motion: reduce) {
-  .scroll-dive-transition,
-  .scroll-dive-pin { height: min(72svh, 720px); }
-  .transition-video { object-position: center bottom; }
 }
 
 .underwater-scene {

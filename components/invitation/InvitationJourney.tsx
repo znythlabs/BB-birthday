@@ -6,8 +6,7 @@ import Lenis from "lenis";
 import { useEffect } from "react";
 
 import { UnderwaterScene } from "@/components/underwater/UnderwaterScene";
-import { ScrollDiveTransition } from "./ScrollDiveTransition";
-import { WelcomeScene } from "./WelcomeScene";
+import { WelcomeDiveSequence } from "./WelcomeDiveSequence";
 
 export function InvitationJourney() {
   useEffect(() => {
@@ -36,8 +35,7 @@ export function InvitationJourney() {
 
   return (
     <main className="invitation-journey">
-      <WelcomeScene />
-      <ScrollDiveTransition />
+      <WelcomeDiveSequence />
       <UnderwaterScene />
     </main>
   );

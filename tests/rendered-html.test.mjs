@@ -29,15 +29,14 @@ test("server-renders Liliana's invitation shell", async () => {
   assert.match(html, /<h2 class="sr-only">Liliana(?:’|&#x2019;|&#8217;)s First Birthday<\/h2>/);
   await access(new URL("../public/images/ui/liliana-underwater-title.png", import.meta.url));
 
-  const welcomeIndex = html.indexOf("welcome-scene");
-  const transitionIndex = html.indexOf("scroll-dive-transition");
+  const sequenceIndex = html.indexOf("welcome-dive-sequence");
   const underwaterIndex = html.indexOf("underwater-scene");
-  assert.ok(welcomeIndex >= 0 && welcomeIndex < transitionIndex);
-  assert.ok(transitionIndex < underwaterIndex);
-  const welcomeHtml = html.slice(welcomeIndex, transitionIndex);
-  assert.doesNotMatch(welcomeHtml, /A little mermaid is turning one/i);
-  assert.doesNotMatch(welcomeHtml, /A magical under-the-sea invitation/i);
-  assert.match(html, /Open all party details/i);
+  assert.ok(sequenceIndex >= 0 && sequenceIndex < underwaterIndex);
+  assert.doesNotMatch(html, /scroll-dive-transition/);
+  const sequenceHtml = html.slice(sequenceIndex, underwaterIndex);
+  assert.match(sequenceHtml, /island\.mp4/i);
+  assert.match(sequenceHtml, /transition-scrub\.mp4/i);
+  assert.doesNotMatch(sequenceHtml, /Open all party details/i);
   assert.match(html, /<video[^>]*class="[^\"]*underwater-background[^\"]*"[^>]*autoplay[^>]*muted[^>]*loop[^>]*playsinline/i);
   assert.match(html, /<source[^>]*background-main\.mp4[^>]*type="video\/mp4"/i);
   assert.match(html, /<video[^>]*class="[^\"]*mermaid-video[^\"]*"[^>]*autoplay[^>]*muted[^>]*loop[^>]*playsinline/i);
@@ -60,19 +59,17 @@ test("server-renders Liliana's invitation shell", async () => {
   assert.match(html, /scene-bgm-toggle/);
 });
 
-test("keeps the pinned dive transition above the following underwater scene", async () => {
+test("keeps one unified media stage above the normal-flow underwater handoff", async () => {
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
-  const normalTransitionRule = css.match(/\.scroll-dive-transition\s*\{([^}]*)\}/)?.[1] ?? "";
+  const sequenceRule = css.match(/\.welcome-dive-sequence\s*\{([^}]*)\}/)?.[1] ?? "";
 
   assert.match(
     css,
-    /\.scroll-dive-pin\s*\{[^}]*isolation:\s*isolate;[^}]*z-index:\s*1/s,
+    /\.welcome-dive-pin\s*\{[^}]*isolation:\s*isolate;[^}]*z-index:\s*1/s,
   );
-  assert.doesNotMatch(normalTransitionRule, /height\s*:/);
-  assert.match(
-    css,
-    /@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.scroll-dive-transition,\s*\.scroll-dive-pin\s*\{[^}]*height:\s*min\(72svh, 720px\)/,
-  );
+  assert.doesNotMatch(sequenceRule, /height\s*:/);
+  assert.match(css, /\.welcome-dive-transition\s*\{[^}]*opacity:\s*0/);
+  assert.doesNotMatch(css, /\.scroll-dive-transition\s*\{/);
 });
 
 test("positions compact glass bubble from live geometry", async () => {
