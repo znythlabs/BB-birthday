@@ -10,7 +10,6 @@ import {
   useState,
 } from "react";
 
-import { eventDetails } from "@/data/eventDetails";
 import {
   interactiveObjects,
   type InteractiveSeaObjectData,
@@ -58,6 +57,7 @@ type MermaidVisual = Point & {
 
 const START_POSITION = { x: 50, y: 49 } as const;
 const MERMAID_EDGE_PADDING = 76;
+const MOBILE_MEDIA_QUERY = "(max-width: 760px), (pointer: coarse) and (max-width: 1200px)";
 const createInitialObjectPositions = (width: number, height: number): ObjectPositions =>
   Object.fromEntries(
     interactiveObjects.map((object) => [
@@ -95,6 +95,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const pointerTargetRef = useRef<Point | null>(null);
   const joystickRef = useRef({ x: 0, y: 0, pointerId: null as number | null });
   const [joystickKnob, setJoystickKnob] = useState({ x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const jellyfishTargetRef = useRef<Point | null>(null);
   const objectPositionsRef = useRef<ObjectPositions>({});
@@ -118,6 +119,25 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       setBgmMuted(true);
     });
   }, []);
+  const enterMobileFullscreen = useCallback(async () => {
+    if (!window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
+    try {
+      if (!document.fullscreenElement) await sceneRef.current?.requestFullscreen();
+      const orientation = window.screen.orientation as ScreenOrientation & { lock?: (mode: "landscape") => Promise<void> };
+      await orientation.lock?.("landscape");
+    } catch {
+      // ponytail: iOS blocks orientation lock; physical rotation remains fallback.
+    }
+    setIsFullscreen(Boolean(document.fullscreenElement));
+  }, []);
+  const toggleMobileFullscreen = useCallback(async () => {
+    if (document.fullscreenElement) {
+      try { await document.exitFullscreen(); } catch { /* Browser may deny exit. */ }
+      return;
+    }
+    await enterMobileFullscreen();
+  }, [enterMobileFullscreen]);
+
   const toggleBgm = useCallback(() => {
     const audio = bgmRef.current;
     if (!audio) return;
@@ -157,6 +177,12 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       window.removeEventListener("mousemove", moveGlobalCursor);
       document.documentElement.removeEventListener("mouseleave", hideGlobalCursor);
     };
+  }, []);
+
+  useEffect(() => {
+    const syncFullscreenState = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", syncFullscreenState);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreenState);
   }, []);
 
   useEffect(() => {
@@ -205,10 +231,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   }, [active]);
 
   useEffect(() => {
-    if (active !== undefined) setSceneEntered(active);
-  }, [active]);
-
-  useEffect(() => {
     const scene = sceneRef.current;
     const background = backgroundRef.current;
     if (!scene || !background) return;
@@ -234,7 +256,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const [objectPositions, setObjectPositions] = useState<ObjectPositions>({});
   const [discovering, setDiscovering] = useState(false);
   const [showAllDetails, setShowAllDetails] = useState(false);
-  const [hasMoved, setHasMoved] = useState(false);
   const [sceneSize, setSceneSize] = useState({ width: 0, height: 0 });
   const [mermaidVisual, setMermaidVisual] = useState<MermaidVisual>({
     x: 0,
@@ -270,7 +291,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       x: clamp(x, MERMAID_EDGE_PADDING, width - MERMAID_EDGE_PADDING),
       y: clamp(y, topPadding, height - MERMAID_EDGE_PADDING),
     };
-    setHasMoved(true);
   }, []);
 
   const moveTargetFromPointer = useCallback(
@@ -291,7 +311,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       pinnedIdRef.current = null;
       pointerTargetRef.current = { x, y };
     },
-    [setTargetPoint],
+    [],
   );
 
   const activateObject = useCallback(
@@ -658,6 +678,9 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       onPointerDown={(event) => {
         if (showAllDetails) return;
         startBgm();
+        if (window.matchMedia(MOBILE_MEDIA_QUERY).matches && !document.fullscreenElement) {
+          void enterMobileFullscreen();
+        }
         if ((event.target as Element).closest("button")) return;
         draggingPointerRef.current = event.pointerId;
         event.currentTarget.setPointerCapture(event.pointerId);
@@ -791,7 +814,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
           event.stopPropagation();
           event.currentTarget.setPointerCapture(event.pointerId);
           joystickRef.current.pointerId = event.pointerId;
-          setHasMoved(true);
         }}
         onPointerMove={(event) => {
           if (joystickRef.current.pointerId !== event.pointerId) return;
@@ -814,9 +836,23 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
           joystickRef.current = { x: 0, y: 0, pointerId: null };
           setJoystickKnob({ x: 0, y: 0 });
         }}
+        onLostPointerCapture={() => {
+          joystickRef.current = { x: 0, y: 0, pointerId: null };
+          setJoystickKnob({ x: 0, y: 0 });
+        }}
       >
         <span className="mobile-joystick-knob" style={{ transform: `translate(${joystickKnob.x}px, ${joystickKnob.y}px)` }} />
       </div>
+
+      <button
+        type="button"
+        className="mobile-fullscreen-button"
+        onClick={toggleMobileFullscreen}
+        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen landscape"}
+      >
+        <span aria-hidden="true">⛶</span>
+        <span>{isFullscreen ? "Exit" : "Fullscreen"}</span>
+      </button>
 
       <div className="rotate-device-prompt" role="status">
         <span className="rotate-device-icon" aria-hidden="true">↻</span>
@@ -825,15 +861,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         <button
           type="button"
           className="rotate-device-button"
-          onClick={async () => {
-            try {
-              if (!document.fullscreenElement) await sceneRef.current?.requestFullscreen();
-              const orientation = screen.orientation as ScreenOrientation & { lock?: (mode: "landscape") => Promise<void> };
-              await orientation.lock?.("landscape");
-            } catch {
-              // ponytail: iOS blocks orientation lock; physical rotation remains fallback.
-            }
-          }}
+          onClick={enterMobileFullscreen}
         >
           Enter landscape
         </button>
