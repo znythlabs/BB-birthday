@@ -1,0 +1,33 @@
+{
+  "sceneReference": "public/images/underwater/background-main.png",
+  "rendering": {
+    "style": "cinematic stylized 3D storybook",
+    "pipeline": "deterministic-local-rig",
+    "pixelSnap": false,
+    "generativeFrameEdits": false,
+    "frameSize": [768, 432]
+  },
+  "liliana": {
+    "approvedAnchors": {
+      "idle": "spriterrific-runs/mermaid-smile/reference/anchor-source.png",
+      "laugh": "spriterrific-runs/mermaid-laugh/reference/anchor-source.png"
+    },
+    "teeth": { "lower": 2, "upper": 0 },
+    "references": ["DSC_8227.jpg", "DSC_8280.jpg"],
+    "required": ["exact facial identity", "lavender glitter bow", "magenta sequined shell top", "emerald scaled mermaid tail"],
+    "forbidden": ["pearl necklace", "loose pearl strand", "handheld beads"]
+  },
+  "archive": {
+    "root": "spriterrific-runs",
+    "requiredDirectories": ["reference", "raw-unkeyed/provider-video", "raw-unkeyed/dense-frames", "raw-unkeyed/contact-sheets", "selected-unkeyed", "keyed", "manual-fixes", "shadows", "final"]
+  },
+  "assets": [
+    { "id": "mermaid", "clips": { "idle": 8, "swim": 12, "discover": 10 } },
+    { "id": "pearl-shell", "clips": { "open": 8 }, "rig": { "type": "texture-preserving-lid-lift", "maskBox": [0.08, 0.08, 0.92, 0.54], "seamY": 0.54, "liftPx": 12 } },
+    { "id": "fish-courier", "clips": { "swim": 10 }, "rig": { "type": "tail-wave", "hingeX": 0.29, "amplitudePx": 11, "swayXPx": 2 } },
+    { "id": "sea-turtle", "clips": { "swim": 10 }, "rig": { "type": "flipper-segment", "maskBox": [0.53, 0.46, 0.95, 0.92], "hinge": [0.59, 0.52], "angleDegrees": [-7, 7], "swayXPx": 2 } },
+    { "id": "treasure-chest", "clips": { "open": 8 }, "rig": { "type": "texture-preserving-lid-lift", "maskBox": [0.11, 0.10, 0.90, 0.52], "seamY": 0.52, "liftPx": 16 } },
+    { "id": "jellyfish", "clips": { "pulse": 8 }, "rig": { "type": "bell-pulse", "lowerStartY": 0.45, "scaleY": [0.965, 1.035], "waveAmplitudePx": 8 } },
+    { "id": "crab", "clips": { "wave": 8 }, "rig": { "type": "claw-segment", "maskBox": [0.62, 0.04, 0.98, 0.48], "hinge": [0.66, 0.47], "angleDegrees": [0, 4.2, 8.4, 12.6, 8.4, 4.2, 1.4, 0] } }
+  ]
+}

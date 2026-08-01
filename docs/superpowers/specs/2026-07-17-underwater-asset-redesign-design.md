@@ -1,6 +1,6 @@
 # Underwater Asset Redesign
 
-**Status:** Approved design
+**Status:** Superseded by `2026-07-17-underwater-direct-rig-design.md`
 
 **Date:** 2026-07-17
 

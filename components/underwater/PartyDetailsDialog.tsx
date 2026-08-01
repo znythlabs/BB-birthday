@@ -1,6 +1,5 @@
-import { useEffect, useRef } from "react";
-/* eslint-disable @next/next/no-img-element -- small local sprite thumbnails are already optimized */
-import { interactiveObjects } from "@/data/interactiveObjects";
+import { useEffect, useRef, type CSSProperties } from "react";
+import { interactiveObjects } from "@/data/seaObjects";
 
 export function PartyDetailsDialog({ onClose }: { onClose: () => void }) {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -33,13 +32,23 @@ export function PartyDetailsDialog({ onClose }: { onClose: () => void }) {
     <div className="details-backdrop" onPointerDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
       <section ref={dialogRef} className="details-dialog" role="dialog" aria-modal="true" aria-labelledby="details-dialog-title">
         <div className="details-dialog-heading">
-          <div><p className="details-dialog-kicker">All the treasures</p><h2 id="details-dialog-title">Liliana’s party details</h2></div>
+          <div><p className="details-dialog-kicker">You’re invited</p><h2 id="details-dialog-title">Party details</h2><p className="details-dialog-intro">Everything you need for Liliana’s underwater celebration.</p></div>
           <button ref={closeButtonRef} type="button" className="details-dialog-close" onClick={onClose} aria-label="Close all party details">×</button>
         </div>
         <dl className="details-list">
           {interactiveObjects.map((object) => (
             <div className="details-list-item" key={object.id}>
-              <span className="details-list-art" aria-hidden="true"><img src={object.asset} alt="" /></span>
+              <span className="details-list-art" aria-hidden="true">
+                <span
+                  className="details-list-sprite"
+                  style={{
+                    backgroundImage: `url(${object.clip.sheet})`,
+                    backgroundPosition: "0% 0%",
+                    backgroundRepeat: "no-repeat",
+                    backgroundSize: `${object.clip.columns * 100}% ${object.clip.rows * 100}%`,
+                  } as CSSProperties}
+                />
+              </span>
               <div><dt>{object.label}</dt><dd>{object.value}</dd></div>
             </div>
           ))}

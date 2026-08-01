@@ -1,9 +1,16 @@
 import { eventDetails } from "./eventDetails";
+import { spriteCatalog, type SpriteClip } from "./spriteCatalog";
 
-export type SeaObjectKind = "shell" | "crab" | "coral" | "treasure" | "fish" | "starfish";
+export type SeaObjectKind =
+  | "pearl-shell"
+  | "fish-courier"
+  | "sea-turtle"
+  | "treasure-chest"
+  | "jellyfish"
+  | "crab";
 
 export type InteractiveSeaObjectData = {
-  id: string;
+  id: SeaObjectKind;
   kind: SeaObjectKind;
   x: number;
   y: number;
@@ -12,87 +19,94 @@ export type InteractiveSeaObjectData = {
   label: string;
   value: string;
   hint: string;
-  asset: string;
   assetAlt: string;
+  clip: SpriteClip;
+  grounded: boolean;
 };
 
 export const interactiveObjects: readonly InteractiveSeaObjectData[] = [
   {
-    id: "celebrant",
-    kind: "shell",
-    x: 13,
-    y: 82,
+    id: "pearl-shell",
+    kind: "pearl-shell",
+    x: 16,
+    y: 78,
     radius: 138,
-    width: 180,
+    width: 300,
     label: "Our little mermaid",
     value: eventDetails.title,
     hint: "Meet Liliana",
-    asset: "/images/sea-elements/shell-large.png",
-    assetAlt: "An open pearlescent shell",
+    assetAlt: "A pearlescent pink and lavender shell",
+    clip: spriteCatalog["pearl-shell"].open,
+    grounded: true,
   },
   {
-    id: "message",
-    kind: "fish",
-    x: 18,
-    y: 47,
-    radius: 118,
-    width: 104,
+    id: "fish-courier",
+    kind: "fish-courier",
+    x: 20,
+    y: 45,
+    radius: 122,
+    width: 260,
     label: "A special message",
     value: eventDetails.invitationMessage,
     hint: "Catch the message",
-    asset: "/images/fish/fish-2.png",
-    assetAlt: "Aqua and lavender tropical fish",
+    assetAlt: "A blue and coral fish courier",
+    clip: spriteCatalog["fish-courier"].swim,
+    grounded: false,
   },
   {
-    id: "rsvp",
-    kind: "starfish",
-    x: 38,
-    y: 90,
-    radius: 116,
-    width: 112,
+    id: "sea-turtle",
+    kind: "sea-turtle",
+    x: 36,
+    y: 76,
+    radius: 124,
+    width: 300,
     label: "Join our school",
     value: eventDetails.rsvp,
     hint: "Open RSVP details",
-    asset: "/images/sea-elements/starfish.png",
-    assetAlt: "A pearly peach starfish",
+    assetAlt: "A teal sea turtle with a violet shell",
+    clip: spriteCatalog["sea-turtle"].swim,
+    grounded: false,
   },
   {
-    id: "venue",
-    kind: "treasure",
+    id: "treasure-chest",
+    kind: "treasure-chest",
     x: 66,
-    y: 85,
-    radius: 132,
-    width: 170,
+    y: 80,
+    radius: 136,
+    width: 320,
     label: "Treasure map",
     value: eventDetails.venue,
     hint: "Reveal the venue",
-    asset: "/images/sea-elements/treasure-chest.png",
-    assetAlt: "An ornate open treasure chest",
+    assetAlt: "A teal treasure chest with rose-gold trim",
+    clip: spriteCatalog["treasure-chest"].open,
+    grounded: true,
   },
   {
-    id: "time",
-    kind: "coral",
-    x: 85,
-    y: 78,
-    radius: 124,
-    width: 142,
+    id: "jellyfish",
+    kind: "jellyfish",
+    x: 82,
+    y: 44,
+    radius: 120,
+    width: 230,
     label: "Party time",
     value: eventDetails.time,
     hint: "Find the time",
-    asset: "/images/sea-elements/coral-cluster.png",
-    assetAlt: "A pastel coral garden",
+    assetAlt: "A glowing lavender and coral jellyfish",
+    clip: spriteCatalog.jellyfish.pulse,
+    grounded: false,
   },
   {
-    id: "date",
+    id: "crab",
     kind: "crab",
     x: 85,
-    y: 89,
-    radius: 122,
-    width: 126,
+    y: 82,
+    radius: 126,
+    width: 290,
     label: "Save the date",
     value: eventDetails.date,
     hint: "Discover the date",
-    asset: "/images/sea-elements/crab-cute.png",
-    assetAlt: "A smiling pink crab",
+    assetAlt: "A coral and lavender reef crab",
+    clip: spriteCatalog.crab.wave,
+    grounded: true,
   },
 ] as const;
