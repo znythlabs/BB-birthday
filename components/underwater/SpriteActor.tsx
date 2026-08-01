@@ -60,6 +60,8 @@ export function SpriteActor({
 
     const startedAt = performance.now();
     let requestId = 0;
+    let timeoutId: number | null = null;
+    const frameDelay = 1000 / clip.fps;
     const tick = (now: number) => {
       const nextFrame = frameAtTime(
         now - startedAt,
@@ -73,11 +75,16 @@ export function SpriteActor({
           : { frame: nextFrame, sheet: clip.sheet },
       );
       if (clip.loop || nextFrame < clip.frames - 1) {
-        requestId = requestAnimationFrame(tick);
+        timeoutId = window.setTimeout(() => {
+          requestId = requestAnimationFrame(tick);
+        }, frameDelay);
       }
     };
     requestId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(requestId);
+    return () => {
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+      if (requestId) cancelAnimationFrame(requestId);
+    };
   }, [clip.fps, clip.frames, clip.loop, clip.sheet, playing]);
 
   const displayedFrame = frameForClip(clock, clip, playing);

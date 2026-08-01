@@ -292,6 +292,18 @@ button { color: inherit; }
   pointer-events: none !important;
 }
 
+@media (max-width: 1200px) and (hover: none), (max-width: 760px) {
+  .underwater-scene[data-transitioning] > .mobile-joystick,
+  .underwater-scene[data-transitioning] > .mobile-fullscreen-button,
+  .underwater-scene[data-transitioning] > .rotate-device-prompt {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+}
+
+.mobile-underwater-background { display: none; }
+
 .underwater-background {
   position: absolute;
   z-index: -10;
@@ -699,9 +711,18 @@ button { color: inherit; }
   transform-origin: 50% 88%;
 }
 
-@media (max-width: 760px), (pointer: coarse) and (max-width: 1200px) {
+@media (max-width: 1200px) {
+  .desktop-underwater-background { display: none; }
+  .mobile-underwater-background { display: block; }
   .game-cursor-dot, .game-cursor-trail { display: none; }
   .underwater-scene { min-height: 0; }
+  .underwater-scene[data-transitioning] > .mobile-joystick,
+  .underwater-scene[data-transitioning] > .mobile-fullscreen-button,
+  .underwater-scene[data-transitioning] > .rotate-device-prompt {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
   .rotate-device-prompt {
     position: absolute;
     z-index: 120;
@@ -780,16 +801,16 @@ button { color: inherit; }
   .details-list { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 760px) and (orientation: portrait), (pointer: coarse) and (max-width: 1200px) and (orientation: portrait) {
+@media (max-width: 1200px) and (orientation: portrait) {
   .rotate-device-prompt { display: grid; }
   .mobile-joystick { display: none; }
 }
 
-@media (max-width: 760px) and (orientation: landscape), (pointer: coarse) and (max-width: 1200px) and (orientation: landscape) {
+@media (max-width: 1200px) and (orientation: landscape) {
   .mobile-joystick { display: grid; }
 }
 
-@media (max-width: 760px), (pointer: coarse) and (max-width: 1200px) {
+@media (max-width: 1200px) {
   .underwater-scene:fullscreen .rotate-device-prompt { display: none; }
   .underwater-scene:fullscreen .mobile-joystick,
   .underwater-scene:fullscreen .mobile-fullscreen-button { display: grid; }

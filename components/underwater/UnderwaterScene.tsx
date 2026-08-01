@@ -57,7 +57,7 @@ type MermaidVisual = Point & {
 
 const START_POSITION = { x: 50, y: 49 } as const;
 const MERMAID_EDGE_PADDING = 76;
-const MOBILE_MEDIA_QUERY = "(max-width: 760px), (pointer: coarse) and (max-width: 1200px)";
+const MOBILE_MEDIA_QUERY = "(max-width: 1200px)";
 const createInitialObjectPositions = (width: number, height: number): ObjectPositions =>
   Object.fromEntries(
     interactiveObjects.map((object) => [
@@ -94,7 +94,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const pointerMotionRef = useRef({ x: 0, y: 0, time: 0, speed: 0 });
   const pointerTargetRef = useRef<Point | null>(null);
   const joystickRef = useRef({ x: 0, y: 0, pointerId: null as number | null });
-  const [joystickKnob, setJoystickKnob] = useState({ x: 0, y: 0 });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const jellyfishTargetRef = useRef<Point | null>(null);
@@ -235,9 +234,10 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
     const background = backgroundRef.current;
     if (!scene || !background) return;
 
+    const isMobile = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
     const videos = Array.from(
       scene.querySelectorAll<HTMLVideoElement>("video"),
-    );
+    ).filter((video) => !isMobile || !video.classList.contains("desktop-underwater-background"));
     const pauseVideos = () => videos.forEach((video) => video.pause());
 
     if (!sceneEntered) {
@@ -254,6 +254,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   }, [sceneEntered, startBgm]);
   const [objectFacings, setObjectFacings] = useState<ObjectFacings>({});
   const [objectPositions, setObjectPositions] = useState<ObjectPositions>({});
+  const objectRenderRef = useRef({ positions: {} as ObjectPositions, facings: {} as ObjectFacings });
   const [discovering, setDiscovering] = useState(false);
   const [showAllDetails, setShowAllDetails] = useState(false);
   const [sceneSize, setSceneSize] = useState({ width: 0, height: 0 });
@@ -381,6 +382,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         ) as ObjectFacings;
         objectPositionsRef.current = initialPositions;
         objectFacingsRef.current = initialFacings;
+        objectRenderRef.current = { positions: initialPositions, facings: initialFacings };
         setObjectPositions(initialPositions);
         setObjectFacings(initialFacings);
         currentRef.current = {
@@ -398,6 +400,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
           ]),
         ) as ObjectPositions;
         objectPositionsRef.current = resizedPositions;
+        objectRenderRef.current.positions = resizedPositions;
         setObjectPositions(resizedPositions);
         currentRef.current = {
           x: currentRef.current.x * scaleX,
@@ -445,8 +448,8 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       if (joystick.pointerId !== null) {
         const { width, height } = sizeRef.current;
         targetRef.current = {
-          x: clamp(current.x + joystick.x * 120, MERMAID_EDGE_PADDING, width - MERMAID_EDGE_PADDING),
-          y: clamp(current.y + joystick.y * 120, Math.min(172, Math.max(118, height * 0.2)), height - MERMAID_EDGE_PADDING),
+          x: clamp(current.x + joystick.x * 420 * deltaSeconds, MERMAID_EDGE_PADDING, width - MERMAID_EDGE_PADDING),
+          y: clamp(current.y + joystick.y * 420 * deltaSeconds, Math.min(172, Math.max(118, height * 0.2)), height - MERMAID_EDGE_PADDING),
         };
       } else {
         const pointerTarget = pointerTargetRef.current;
@@ -550,7 +553,8 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         }
         objectPositionsRef.current = nextObjects;
         objectFacingsRef.current = nextFacings;
-        if (now - lastVisualUpdate >= 16) {
+        if (now - lastVisualUpdate >= 80) {
+          objectRenderRef.current = { positions: nextObjects, facings: nextFacings };
           setObjectPositions(nextObjects);
           setObjectFacings(nextFacings);
         }
@@ -669,7 +673,73 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       ? "swim"
       : "idle";
 
+  const mobileControls = (
+    <>
+      <div
+        className="mobile-joystick"
+        aria-label="Mermaid movement joystick"
+        role="group"
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          event.currentTarget.setPointerCapture(event.pointerId);
+          joystickRef.current.pointerId = event.pointerId;
+        }}
+        onPointerMove={(event) => {
+          if (joystickRef.current.pointerId !== event.pointerId) return;
+          const box = event.currentTarget.getBoundingClientRect();
+          const x = event.clientX - (box.left + box.width / 2);
+          const y = event.clientY - (box.top + box.height / 2);
+          const distance = Math.hypot(x, y) || 1;
+          const scale = Math.min(1, 42 / distance);
+          const knob = { x: x * scale, y: y * scale };
+          joystickRef.current.x = knob.x / 42;
+          joystickRef.current.y = knob.y / 42;
+          event.currentTarget.style.setProperty("--joystick-x", `${knob.x}px`);
+          event.currentTarget.style.setProperty("--joystick-y", `${knob.y}px`);
+        }}
+        onPointerUp={(event) => {
+          if (joystickRef.current.pointerId !== event.pointerId) return;
+          joystickRef.current = { x: 0, y: 0, pointerId: null };
+          event.currentTarget.style.setProperty("--joystick-x", "0px");
+          event.currentTarget.style.setProperty("--joystick-y", "0px");
+        }}
+        onPointerCancel={(event) => {
+          joystickRef.current = { x: 0, y: 0, pointerId: null };
+          event.currentTarget.style.setProperty("--joystick-x", "0px");
+          event.currentTarget.style.setProperty("--joystick-y", "0px");
+        }}
+        onLostPointerCapture={(event) => {
+          joystickRef.current = { x: 0, y: 0, pointerId: null };
+          event.currentTarget.style.setProperty("--joystick-x", "0px");
+          event.currentTarget.style.setProperty("--joystick-y", "0px");
+        }}
+      >
+        <span className="mobile-joystick-knob" />
+      </div>
+
+      <button
+        type="button"
+        className="mobile-fullscreen-button"
+        onClick={toggleMobileFullscreen}
+        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen landscape"}
+      >
+        <span aria-hidden="true">⛶</span>
+        <span>{isFullscreen ? "Exit" : "Fullscreen"}</span>
+      </button>
+
+      <div className="rotate-device-prompt" role="status">
+        <span className="rotate-device-icon" aria-hidden="true">↻</span>
+        <strong>Play in landscape</strong>
+        <span>Rotate your device for full underwater controls</span>
+        <button type="button" className="rotate-device-button" onClick={enterMobileFullscreen}>
+          Enter landscape
+        </button>
+      </div>
+    </>
+  );
+
   return (
+    <>
     <section
       ref={sceneRef}
       className="underwater-scene"
@@ -724,6 +794,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         pointerTargetRef.current = null;
       }}
     >
+      {mobileControls}
       <span ref={cursorTrailRef} className="game-cursor-trail" aria-hidden="true" />
       <span ref={cursorRef} className="game-cursor-dot" aria-hidden="true" />
       <audio
@@ -745,17 +816,24 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       >
         {bgmMuted ? "Unmute music" : "Mute music"}
       </button>
+      <img
+        className="underwater-background mobile-underwater-background"
+        src="/images/underwater/background-mobile.webp"
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+      />
       <video
         ref={backgroundRef}
-        className="underwater-background"
+        className="underwater-background desktop-underwater-background"
         muted
         loop
         playsInline
-        preload="auto"
+        preload="none"
         aria-hidden="true"
         tabIndex={-1}
       >
-        <source src="/images/underwater/newunderwater.mp4" type="video/mp4" />
+        <source media="(min-width: 1201px)" src="/images/underwater/newunderwater.mp4" type="video/mp4" />
       </video>
       <BackgroundFishSchools mermaidRef={currentRef} />
       <AmbientLayers />
@@ -806,67 +884,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         />
       ) : null}
 
-      <div
-        className="mobile-joystick"
-        aria-label="Mermaid movement joystick"
-        role="group"
-        onPointerDown={(event) => {
-          event.stopPropagation();
-          event.currentTarget.setPointerCapture(event.pointerId);
-          joystickRef.current.pointerId = event.pointerId;
-        }}
-        onPointerMove={(event) => {
-          if (joystickRef.current.pointerId !== event.pointerId) return;
-          const box = event.currentTarget.getBoundingClientRect();
-          const x = event.clientX - (box.left + box.width / 2);
-          const y = event.clientY - (box.top + box.height / 2);
-          const distance = Math.hypot(x, y) || 1;
-          const scale = Math.min(1, 42 / distance);
-          const knob = { x: x * scale, y: y * scale };
-          joystickRef.current.x = knob.x / 42;
-          joystickRef.current.y = knob.y / 42;
-          setJoystickKnob(knob);
-        }}
-        onPointerUp={(event) => {
-          if (joystickRef.current.pointerId !== event.pointerId) return;
-          joystickRef.current = { x: 0, y: 0, pointerId: null };
-          setJoystickKnob({ x: 0, y: 0 });
-        }}
-        onPointerCancel={() => {
-          joystickRef.current = { x: 0, y: 0, pointerId: null };
-          setJoystickKnob({ x: 0, y: 0 });
-        }}
-        onLostPointerCapture={() => {
-          joystickRef.current = { x: 0, y: 0, pointerId: null };
-          setJoystickKnob({ x: 0, y: 0 });
-        }}
-      >
-        <span className="mobile-joystick-knob" style={{ transform: `translate(${joystickKnob.x}px, ${joystickKnob.y}px)` }} />
-      </div>
-
-      <button
-        type="button"
-        className="mobile-fullscreen-button"
-        onClick={toggleMobileFullscreen}
-        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen landscape"}
-      >
-        <span aria-hidden="true">⛶</span>
-        <span>{isFullscreen ? "Exit" : "Fullscreen"}</span>
-      </button>
-
-      <div className="rotate-device-prompt" role="status">
-        <span className="rotate-device-icon" aria-hidden="true">↻</span>
-        <strong>Play in landscape</strong>
-        <span>Rotate your device for full underwater controls</span>
-        <button
-          type="button"
-          className="rotate-device-button"
-          onClick={enterMobileFullscreen}
-        >
-          Enter landscape
-        </button>
-      </div>
-
       <button
         type="button"
         className="all-details-button"
@@ -881,5 +898,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         {activeObject ? `${activeObject.label}: ${activeObject.value}` : ""}
       </p>
     </section>
+    </>
   );
 }

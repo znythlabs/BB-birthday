@@ -44,6 +44,7 @@ export function InteractiveSeaObject({
   const videoSrc = OBJECT_VIDEO_PATHS[object.kind];
   const shadowSrc = OBJECT_SHADOW_PATHS[object.kind];
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameHeight = object.width * (432 / 768);
   const globalX = position?.x ?? (object.x / 100) * sceneWidth;
@@ -82,6 +83,14 @@ export function InteractiveSeaObject({
   } as CSSProperties;
 
   useEffect(() => {
+    const mobileQuery = window.matchMedia("(max-width: 1200px)");
+    const syncMobile = () => setIsMobile(mobileQuery.matches);
+    syncMobile();
+    mobileQuery.addEventListener("change", syncMobile);
+    return () => mobileQuery.removeEventListener("change", syncMobile);
+  }, []);
+
+  useEffect(() => {
     if (!videoSrc) return;
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const syncMotionPreference = () => {
@@ -89,20 +98,20 @@ export function InteractiveSeaObject({
       setReducedMotion(reduced);
       const video = videoRef.current;
       if (!video) return;
-      if (reduced) video.pause();
+      if (reduced || isMobile) video.pause();
       else void video.play().catch(() => undefined);
     };
     syncMotionPreference();
     motionQuery.addEventListener("change", syncMotionPreference);
     return () => motionQuery.removeEventListener("change", syncMotionPreference);
-  }, [videoSrc]);
+  }, [isMobile, videoSrc]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !videoSrc) return;
-    if (reducedMotion) video.pause();
+    if (reducedMotion || isMobile) video.pause();
     else void video.play().catch(() => undefined);
-  }, [reducedMotion, videoSrc]);
+  }, [isMobile, reducedMotion, videoSrc]);
 
   return (
     <button
@@ -119,8 +128,8 @@ export function InteractiveSeaObject({
       <SpriteActor
         clip={object.clip}
         facing={visualFacing}
-        playing={object.clip.loop || active}
-        renderSubject={!videoSrc}
+        playing={isMobile ? active : object.clip.loop || active}
+        renderSubject={!videoSrc || isMobile}
         className={
           object.kind === "sea-turtle" ? "sprite-actor-shadow-back" : ""
         }
@@ -138,7 +147,7 @@ export function InteractiveSeaObject({
           style={{ transform: `scaleX(${visualFacing})` }}
         />
       ) : null}
-      {videoSrc ? (
+      {videoSrc && !isMobile ? (
         <span className="sea-object-media">
           <video
             ref={videoRef}
@@ -148,7 +157,7 @@ export function InteractiveSeaObject({
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             tabIndex={-1}
             aria-hidden="true"
             onLoadedData={(event) => {

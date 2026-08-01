@@ -74,8 +74,10 @@ export function BackgroundFishSchools({ mermaidRef }: Props) {
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const reducedMotionRef = { current: motionQuery.matches };
 
+    const isMobile = window.matchMedia("(max-width: 1200px)").matches;
+    const groupCount = isMobile ? SCHOOL_SIZE : SCHOOL_COUNT * SCHOOL_SIZE;
     const groups: GroupRuntime[] = Array.from(
-      { length: SCHOOL_COUNT * SCHOOL_SIZE },
+      { length: groupCount },
       (_, index) => ({
       x: 0,
       y: 0,
@@ -306,7 +308,9 @@ export function BackgroundFishSchools({ mermaidRef }: Props) {
         }
       }
 
-      rafId = requestAnimationFrame(frame);
+      rafId = isMobile
+        ? window.setTimeout(() => { rafId = requestAnimationFrame(frame); }, 33) as unknown as number
+        : requestAnimationFrame(frame);
     };
 
     const start = () => {
@@ -317,7 +321,10 @@ export function BackgroundFishSchools({ mermaidRef }: Props) {
     };
     const stop = () => {
       running = false;
-      if (rafId) cancelAnimationFrame(rafId);
+      if (rafId) {
+        if (isMobile) window.clearTimeout(rafId);
+        else cancelAnimationFrame(rafId);
+      }
       rafId = 0;
     };
     const handleVisibility = () => {
@@ -364,7 +371,7 @@ export function BackgroundFishSchools({ mermaidRef }: Props) {
             autoPlay
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             tabIndex={-1}
           />
         </div>

@@ -23,6 +23,7 @@ type MermaidCharacterProps = {
 export function MermaidCharacter({ action, x, y, width, facing, shadow, audioMuted }: MermaidCharacterProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const videoStyle = {
     left: x,
     top: y,
@@ -32,18 +33,25 @@ export function MermaidCharacter({ action, x, y, width, facing, shadow, audioMut
 
   useEffect(() => {
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const syncMotionPreference = () => {
+    const mobileQuery = window.matchMedia("(max-width: 1200px)");
+    const syncPreferences = () => {
       const reduced = motionQuery.matches;
+      const mobile = mobileQuery.matches;
       setReducedMotion(reduced);
+      setIsMobile(mobile);
       const video = videoRef.current;
       if (!video) return;
-      if (reduced) video.pause();
+      if (reduced || mobile) video.pause();
       else void video.play().catch(() => undefined);
     };
 
-    syncMotionPreference();
-    motionQuery.addEventListener("change", syncMotionPreference);
-    return () => motionQuery.removeEventListener("change", syncMotionPreference);
+    syncPreferences();
+    motionQuery.addEventListener("change", syncPreferences);
+    mobileQuery.addEventListener("change", syncPreferences);
+    return () => {
+      motionQuery.removeEventListener("change", syncPreferences);
+      mobileQuery.removeEventListener("change", syncPreferences);
+    };
   }, []);
 
   return (
@@ -56,23 +64,23 @@ export function MermaidCharacter({ action, x, y, width, facing, shadow, audioMut
         width={width}
         x={x}
         y={y}
-        renderSubject={false}
+        renderSubject={isMobile}
       />
       <div className="sprite-actor-layer mermaid-actor" data-action={action}>
         <video
           ref={videoRef}
           className="mermaid-video"
           style={videoStyle}
-          autoPlay={!reducedMotion}
+          autoPlay={!reducedMotion && !isMobile}
           muted={audioMuted}
           loop
           playsInline
-          preload="auto"
+          preload={isMobile ? "none" : "auto"}
           tabIndex={-1}
           aria-label="Liliana swimming as a mermaid"
           role="img"
           onLoadedData={(event) => {
-            if (reducedMotion) event.currentTarget.pause();
+            if (reducedMotion || isMobile) event.currentTarget.pause();
           }}
         >
           <source src={MERMAID_VIDEO_PATH} type="video/webm" />
