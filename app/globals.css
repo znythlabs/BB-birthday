@@ -358,7 +358,7 @@ button { color: inherit; }
   z-index: 35;
   top: max(8px, env(safe-area-inset-top));
   left: 50%;
-  width: clamp(220px, 30vw, 400px);
+  width: clamp(150px, 20vw, 260px);
   transform: translateX(-50%);
   pointer-events: none;
   filter: drop-shadow(0 8px 14px rgba(2, 66, 92, 0.28));
@@ -789,7 +789,7 @@ button { color: inherit; }
   .underwater-background { object-position: center bottom; }
   .underwater-title-lockup {
     top: max(4px, env(safe-area-inset-top));
-    width: clamp(210px, 58vw, 300px);
+    width: clamp(150px, 42vw, 220px);
   }
   .interaction-hint { top: 22%; width: max-content; max-width: 86vw; font-size: 0.66rem; }
   .sea-object { --object-scale: 0.72; }
@@ -817,7 +817,7 @@ button { color: inherit; }
 }
 
 @media (max-height: 650px) and (orientation: landscape) {
-  .underwater-title-lockup { top: 2px; width: 240px; }
+  .underwater-title-lockup { top: 2px; width: 180px; }
   .interaction-hint { top: 22%; }
   .sea-object { --object-scale: 0.68; }
   .all-details-button { bottom: 10px; }
