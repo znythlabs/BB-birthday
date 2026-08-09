@@ -27,6 +27,7 @@ export function WelcomeDiveSequence({
   const shadeRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(0);
   const [underwaterActive, setUnderwaterActive] = useState(false);
+  const committedRef = useRef(false);
 
   useEffect(() => {
     const video = transitionRef.current;
@@ -82,6 +83,7 @@ export function WelcomeDiveSequence({
       const seeker = createRafVideoSeeker(transition);
 
       const applyProgress = (progress: number) => {
+        if (committedRef.current) progress = 1;
         const transitionMix = Math.min(1, progress / 0.08);
         const copyExit = Math.min(1, progress / 0.1);
         const underwaterHandoff = Math.min(
@@ -112,8 +114,22 @@ export function WelcomeDiveSequence({
           pinSpacing: true,
           anticipatePin: 1,
           invalidateOnRefresh: true,
-          onUpdate: (self) => applyProgress(self.progress),
-          onRefresh: (self) => applyProgress(self.progress),
+          onUpdate: (self) => {
+            if (committedRef.current) return;
+            applyProgress(self.progress);
+            if (
+              self.progress >= 0.9 &&
+              window.matchMedia("(max-width: 1200px)").matches
+            ) {
+              applyProgress(1);
+              committedRef.current = true;
+              self.disable(false);
+              underwater.style.pointerEvents = "auto";
+            }
+          },
+          onRefresh: (self) => {
+            if (!committedRef.current) applyProgress(self.progress);
+          },
         });
       }, trigger);
 
@@ -147,6 +163,11 @@ export function WelcomeDiveSequence({
           aria-hidden="true"
           tabIndex={-1}
         >
+          <source
+            media="(max-width: 1200px)"
+            src="/images/mobile/island-mobile.mp4"
+            type="video/mp4"
+          />
           <source src="/images/underwater/island.mp4" type="video/mp4" />
         </video>
 
@@ -159,6 +180,11 @@ export function WelcomeDiveSequence({
           aria-hidden="true"
           tabIndex={-1}
         >
+          <source
+            media="(max-width: 1200px)"
+            src="/images/mobile/transition-scrub-mobile.mp4"
+            type="video/mp4"
+          />
           <source
             src="/images/underwater/transition-scrub-smooth.mp4"
             type="video/mp4"
