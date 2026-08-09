@@ -22,29 +22,26 @@ The six discoveries, labels, WebM assets, percentage positions, proximity radii,
 ## Artwork map
 
 - `public/images/underwater/background-main.png` — immutable 2048×1152 scene background
-- `public/images/underwater-v2/mermaid/` — 30 reviewed Liliana frames, sheets, contact sheets, and manifests
+- `public/images/mermaid/mermaid-transparent.webm` — Liliana's transparent animated character
 - `public/images/underwater-v2/interactives/` — transparent WebM sea-object animations and dedicated shadow images
-- `spriterrific-runs/` — raw anchors, every unmasked intermediate, keyed derivatives, rejected attempts, and repair archives
-- `docs/assets/underwater-v2-production.json` — production contract, frame counts, rig coordinates, and identity requirements
+- `spriterrific-runs/` — raw anchors and preserved artwork sources
 - `public/fonts/` — locally bundled Bodoni Moda headline fonts
 - `public/og.png` — social-share preview
 
-The old video background, two-pose mermaid cutouts, ambient foreground fish, and legacy sea-element cutouts are no longer used by the scene.
+The old video background, sprite sheets, ambient foreground fish, and legacy sea-element cutouts are no longer used by the scene.
 
 ## Interaction and accessibility
 
 - Pointer movement, touch dragging, and tap-to-swim share the same smoothed target.
-- Liliana uses 8-frame idle, 12-frame swim, and 10-frame discovery clips; her smile remains the approved two-lower-teeth expression with no upper teeth.
+- Liliana's transparent WebM loops inline; reduced-motion preferences pause it.
 - Swimming near an object reveals its detail; selecting a real button opens the same detail directly.
 - “Open all party details” provides a complete non-game fallback.
 - Escape closes an open detail or dialog, and focus remains inside the modal while it is open.
 - Focus rings, button semantics, polite announcements, and 48px-or-larger controls support keyboard and assistive-technology users.
-- Reduced-motion preferences stop continuous sprite playback and make mermaid movement immediate.
-- Every actor shadow is generated from the exact active sprite frame. Liliana’s seabed projection becomes softer, fainter, and farther away as she swims higher.
+- Reduced-motion preferences pause mermaid playback and make movement immediate.
+- Sea-object WebM actors retain dedicated shadows where needed.
 
-## Underwater-v2 production workflow
-
-The accepted pipeline is deterministic local rig rendering. It preserves the approved pixels instead of asking an image model to repaint each animation frame.
+## Artwork preservation
 
 Approved Liliana sources:
 
@@ -55,28 +52,7 @@ Approved Liliana sources:
 
 Liliana must retain her lavender glitter bow, magenta sequined shell top, emerald scaled tail, hair, hands, and complete fins. Do not add a pearl necklace, loose pearl strand, or handheld beads. Do not generatively edit her accepted frames.
 
-The six accepted object anchors are stored at `spriterrific-runs/<object-id>/reference/anchor-source.png`. Rebuild all clips from the repository root with:
-
-```bash
-python scripts/underwater_v2/render_mermaid.py
-python scripts/underwater_v2/render_objects.py
-```
-
-Exact runtime counts:
-
-| Actor | Clip | Frames |
-| --- | --- | ---: |
-| Liliana | idle | 8 |
-| Liliana | swim | 12 |
-| Liliana | discover | 10 |
-| Pearl shell | open | 8 |
-| Fish courier | swim | 10 |
-| Sea turtle | swim | 10 |
-| Treasure chest | open | 8 |
-| Jellyfish | pulse | 8 |
-| Crab | wave | 8 |
-
-The total is 82 RGBA frames on fixed 768×432 canvases. Public frames are packed into manifest-driven sheets under `public/images/underwater-v2/`.
+The six accepted object anchors remain stored at `spriterrific-runs/<object-id>/reference/anchor-source.png`.
 
 ### Raw preservation and manual mask repair
 

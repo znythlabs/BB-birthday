@@ -23,10 +23,10 @@ Interactive labels are not permanently displayed. Each object gets a subtle pear
 - `public/images/underwater/background-main.mp4`: full-bleed H.264 environment video with an open center; autoplay muted, looped, inline, and covered edge-to-edge.
 - `public/images/mermaid/baby-mermaid-main.png`: preserved master character art.
 - `public/images/mermaid/baby-mermaid-body.png` and `baby-mermaid-tail.png`: pixel-aligned production layers; the actual baby portrait remains a replaceable identity layer until supplied.
-- `public/images/sea-elements/`: fixed shell, chest, crab, coral, plant, starfish, clam, and rock assets.
-- `public/images/fish/`: three independently animated fish sprites.
+- `public/images/underwater-v2/interactives/`: transparent WebM sea-object animations and dedicated shadows.
+- `public/images/underwater-v2/interactives/small fishes/`: transparent ambient fish WebMs.
 
-The mermaid uses exactly two pixel-aligned raster layers and two tail poses. The tail continues a slow 920ms idle stroke and accelerates toward 140ms from live swim energy while the face, hands, and torso remain untouched. Fish remain opaque and use a triggered 560ms burst state with matching travel/facing direction, cooldown, and offscreen reset rather than a continuous magnetic offset. Shell, starfish, coral, chest, and crab sit partially below the reef line with contact shadows and foreground sand occlusion; they do not bob like open-water creatures.
+The mermaid uses one transparent looping WebM. Sea objects use transparent WebMs with dedicated shadows where needed.
 
 Decorative hollow ring overlays are prohibited. Retain only the background artwork’s small natural pearl bubbles.
 

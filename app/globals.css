@@ -675,27 +675,9 @@ button { color: inherit; }
 @keyframes backdrop-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes dialog-in { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
 
-.sprite-actor-layer {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  pointer-events: none;
-}
-
-.sprite-actor-layer.mermaid-actor { z-index: 24; }
-.sprite-actor-shadow-back { z-index: -1; }
-
-.sprite-actor-subject,
-.sprite-actor-shadow {
-  position: absolute;
-  display: block;
-  transform-origin: 50% 50%;
-  will-change: background-position, transform;
-}
-
 .mermaid-video {
   position: absolute;
-  z-index: 2;
+  z-index: 24;
   display: block;
   aspect-ratio: 16 / 9;
   height: auto;
@@ -703,12 +685,6 @@ button { color: inherit; }
   filter: drop-shadow(0 17px 15px rgba(3, 70, 90, 0.23));
   pointer-events: none;
   will-change: transform;
-}
-
-.sprite-actor-shadow {
-  z-index: 1;
-  mix-blend-mode: multiply;
-  transform-origin: 50% 88%;
 }
 
 @media (max-width: 1200px) {

@@ -15,7 +15,6 @@ import {
   type InteractiveSeaObjectData,
   type SeaObjectKind,
 } from "@/data/seaObjects";
-import { spriteCatalog } from "@/data/spriteCatalog";
 import { clamp, distanceBetween } from "@/lib/distance";
 import {
   CRAB_PATROL_SPEED,
@@ -33,17 +32,12 @@ import {
   randomTurtleWaypoint,
   turtleSurfaceBounds,
 } from "@/lib/objectMotion.mjs";
-import { mermaidAltitude, projectShadow } from "@/lib/underwaterProjection.mjs";
 import { AmbientLayers } from "./AmbientLayers";
 import { BackgroundFishSchools } from "./BackgroundFishSchools";
 import { BubbleMessage } from "./BubbleMessage";
 import { InteractiveSeaObject } from "./InteractiveSeaObject";
-import {
-  MermaidCharacter,
-  type MermaidAction,
-} from "./MermaidCharacter";
+import { MermaidCharacter } from "./MermaidCharacter";
 import { PartyDetailsDialog } from "./PartyDetailsDialog";
-import type { SpriteProjection } from "./SpriteActor";
 
 type Point = { x: number; y: number };
 type ObjectPositions = Partial<Record<SeaObjectKind, Point>>;
@@ -51,8 +45,6 @@ type ObjectFacings = Partial<Record<SeaObjectKind, 1 | -1>>;
 type MermaidVisual = Point & {
   width: number;
   facing: 1 | -1;
-  travelSpeed: number;
-  shadow: SpriteProjection;
 };
 
 const START_POSITION = { x: 50, y: 49 } as const;
@@ -66,16 +58,6 @@ const createInitialObjectPositions = (width: number, height: number): ObjectPosi
     ]),
   );
 
-const EMPTY_SHADOW: SpriteProjection = {
-  groundX: 0,
-  groundY: 0,
-  opacity: 0,
-  blurPx: 3,
-  scaleX: 1,
-  scaleY: 0.2,
-  skewXDeg: -5,
-};
-
 export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const sceneRef = useRef<HTMLElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
@@ -83,7 +65,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const cursorIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const draggingPointerRef = useRef<number | null>(null);
-  const discoveryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sizeRef = useRef({ width: 0, height: 0 });
   const currentRef = useRef<Point>({ x: 0, y: 0 });
   const targetRef = useRef<Point>({ x: 0, y: 0 });
@@ -92,7 +73,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const dismissedIdRef = useRef<string | null>(null);
   const reducedMotionRef = useRef(false);
   const mobileRef = useRef(false);
-  const pointerMotionRef = useRef({ x: 0, y: 0, time: 0, speed: 0 });
   const pointerTargetRef = useRef<Point | null>(null);
   const joystickRef = useRef({ x: 0, y: 0, pointerId: null as number | null });
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -256,7 +236,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const [objectFacings, setObjectFacings] = useState<ObjectFacings>({});
   const [objectPositions, setObjectPositions] = useState<ObjectPositions>({});
   const objectRenderRef = useRef({ positions: {} as ObjectPositions, facings: {} as ObjectFacings });
-  const [discovering, setDiscovering] = useState(false);
   const [showAllDetails, setShowAllDetails] = useState(false);
   const [sceneSize, setSceneSize] = useState({ width: 0, height: 0 });
   const [mermaidVisual, setMermaidVisual] = useState<MermaidVisual>({
@@ -264,25 +243,12 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
     y: 0,
     width: 300,
     facing: 1,
-    travelSpeed: 0,
-    shadow: EMPTY_SHADOW,
   });
 
   const updateActiveId = useCallback((nextId: string | null) => {
     if (activeIdRef.current === nextId) return;
     activeIdRef.current = nextId;
     setActiveId(nextId);
-    if (discoveryTimerRef.current) clearTimeout(discoveryTimerRef.current);
-    if (nextId) {
-      setDiscovering(true);
-      const discoverClip = spriteCatalog.mermaid.discover;
-      discoveryTimerRef.current = setTimeout(
-        () => setDiscovering(false),
-        (discoverClip.frames / discoverClip.fps) * 1000,
-      );
-    } else {
-      setDiscovering(false);
-    }
   }, []);
 
   const setTargetPoint = useCallback((x: number, y: number) => {
@@ -300,16 +266,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       const bounds = event.currentTarget.getBoundingClientRect();
       const x = event.clientX - bounds.left;
       const y = event.clientY - bounds.top;
-      const now = performance.now();
-      const previous = pointerMotionRef.current;
-      if (previous.time > 0) {
-        const elapsed = Math.max(8, now - previous.time);
-        const sampledSpeed = Math.hypot(x - previous.x, y - previous.y) / elapsed;
-        previous.speed = previous.speed * 0.58 + sampledSpeed * 0.42;
-      }
-      previous.x = x;
-      previous.y = y;
-      previous.time = now;
       pinnedIdRef.current = null;
       pointerTargetRef.current = { x, y };
     },
@@ -464,12 +420,8 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       const next = reducedMotionRef.current
         ? target
         : smoothToward(current, targetRef.current, movementAmount, 3.2);
-      const travelSpeed = deltaSeconds > 0
-        ? Math.hypot(next.x - current.x, next.y - current.y) / deltaSeconds
-        : 0;
       current.x = next.x;
       current.y = next.y;
-      pointerMotionRef.current.speed *= Math.exp(-5 * deltaSeconds);
 
       const { width, height } = sizeRef.current;
       if (width && height && deltaSeconds > 0 && !reducedMotionRef.current) {
@@ -565,27 +517,11 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       }
 
       if (width && height && now - lastVisualUpdate >= 16) {
-        const altitude = mermaidAltitude(current.y, height);
-        const projected = projectShadow({
-          x: current.x,
-          y: current.y,
-          sceneWidth: width,
-          sceneHeight: height,
-          altitude,
-          speed: Math.max(pointerMotionRef.current.speed * 1000, travelSpeed * 60),
-          facing,
-        });
-        const groundedProjection = {
-          ...projected,
-          groundY: Math.max(projected.groundY, height * 0.82),
-        };
         setMermaidVisual({
           x: current.x,
           y: current.y,
           width: clamp(width * 0.3, 240, 380),
           facing,
-          travelSpeed,
-          shadow: groundedProjection,
         });
         lastVisualUpdate = now;
       }
@@ -654,7 +590,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
 
   useEffect(
     () => () => {
-      if (discoveryTimerRef.current) clearTimeout(discoveryTimerRef.current);
       if (cursorIdleTimerRef.current) clearTimeout(cursorIdleTimerRef.current);
     },
     [],
@@ -672,12 +607,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   }, [closeActiveDetail, closeAllDetails, showAllDetails, startBgm]);
 
   const activeObject = interactiveObjects.find((object) => object.id === activeId);
-  const mermaidAction: MermaidAction = discovering
-    ? "discover"
-    : mermaidVisual.travelSpeed > 1.4
-      ? "swim"
-      : "idle";
-
   const mobileControls = (
     <>
       <div
@@ -870,9 +799,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       </div>
 
       <MermaidCharacter
-        action={mermaidAction}
         facing={mermaidVisual.facing}
-        shadow={mermaidVisual.shadow}
         width={mermaidVisual.width}
         audioMuted={bgmMuted}
         x={mermaidVisual.x}

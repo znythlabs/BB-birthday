@@ -242,10 +242,7 @@ def render_mermaid_clips(
 
 
 def main() -> None:
-    root = _repository_root()
-    clips = render_mermaid_clips(root / "public/images/underwater-v2/mermaid")
-    counts = ", ".join(f"{name}={len(frames)}" for name, frames in clips.items())
-    print(f"Rendered Liliana clips: {counts}")
+    raise SystemExit("Liliana sprite export removed; use public/images/mermaid/mermaid-transparent.webm")
 
 
 if __name__ == "__main__":

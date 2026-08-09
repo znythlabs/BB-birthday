@@ -76,10 +76,9 @@ test("positions compact glass bubble from live geometry", async () => {
 });
 
 test("keeps invitation content and WebM sea objects centralized", async () => {
-  const [eventConfig, objects, catalog, scene, mermaid, readme] = await Promise.all([
+  const [eventConfig, objects, scene, mermaid, readme] = await Promise.all([
     readFile(new URL("../data/eventDetails.ts", import.meta.url), "utf8"),
     readFile(new URL("../data/seaObjects.ts", import.meta.url), "utf8"),
-    readFile(new URL("../data/spriteCatalog.ts", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/MermaidCharacter.tsx", import.meta.url), "utf8"),
     readFile(new URL("../README.md", import.meta.url), "utf8"),
@@ -91,11 +90,10 @@ test("keeps invitation content and WebM sea objects centralized", async () => {
   assert.match(scene, /newunderwater\.mp4/);
   assert.match(mermaid, /mermaid-video/);
   assert.match(mermaid, /mermaid-transparent\.webm/);
-  assert.match(catalog, /mermaid:/);
-  assert.doesNotMatch(catalog, /interactives\/(?:pearl-shell|fish-courier|sea-turtle|treasure-chest|jellyfish|crab)\/sheet\.png/);
   assert.match(objects, /videoSrc:/);
   assert.doesNotMatch(objects, /\bicon\s*:/);
-  assert.match(readme, /public\/images\/underwater-v2/);
+  assert.match(readme, /public\/images\/underwater-v2\/interactives/);
+  assert.doesNotMatch(readme, /underwater-v2\/mermaid|sea-elements|public\/images\/fish/);
   await access(new URL("../public/images/underwater/background-main.mp4", import.meta.url));
   await access(new URL("../public/images/mermaid/mermaid-transparent.webm", import.meta.url));
   await access(new URL("../public/images/underwater-v2/interactives/pearl-transparent.webm", import.meta.url));
@@ -109,13 +107,12 @@ test("keeps invitation content and WebM sea objects centralized", async () => {
 });
 
 test("uses WebM actors and exact projections without legacy cutouts", async () => {
-  const [objectComponent, objects, ambient, mermaid, scene, spriteActor, projection, css] = await Promise.all([
+  const [objectComponent, objects, ambient, mermaid, scene, projection, css] = await Promise.all([
     readFile(new URL("../components/underwater/InteractiveSeaObject.tsx", import.meta.url), "utf8"),
     readFile(new URL("../data/seaObjects.ts", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/AmbientLayers.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/MermaidCharacter.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url), "utf8"),
-    readFile(new URL("../components/underwater/SpriteActor.tsx", import.meta.url), "utf8"),
     readFile(new URL("../lib/underwaterProjection.mjs", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
@@ -132,7 +129,6 @@ test("uses WebM actors and exact projections without legacy cutouts", async () =
   assert.match(css, /\.sea-object-video\s*\{[^}]*height:\s*100%/);
   assert.match(css, /\.sea-object-video\s*\{[^}]*object-fit:\s*contain/);
   assert.match(css, /\.sea-object-video\s*\{[^}]*display:\s*block/);
-  assert.match(css, /\.sprite-actor-layer\.mermaid-actor\s*\{[^}]*z-index:\s*24/);
   assert.match(scene, /smoothToward/);
   assert.match(scene, /faceTowardTarget/);
   assert.match(scene, /advancePatrol/);
@@ -140,19 +136,12 @@ test("uses WebM actors and exact projections without legacy cutouts", async () =
   assert.match(scene, /objectPositions/);
   assert.match(scene, /position=\{objectPositions\[object\.kind\]\}/);
   assert.match(mermaid, /mermaid-transparent\.webm/);
-  assert.match(mermaid, /<SpriteActor/);
-  assert.match(mermaid, /mermaid-shadow/);
-  assert.match(mermaid, /spriteCatalog\.mermaid\[action\]/);
-  assert.match(spriteActor, /data-frame=\{displayedFrame\}/);
-  assert.match(spriteActor, /sprite-actor-shadow/);
-  assert.match(projection, /mermaidAltitude/);
-  assert.match(projection, /projectShadow/);
   assert.match(scene, /newunderwater\.mp4/);
   assert.doesNotMatch(mermaid, /mermaid-face-photo|baby-mermaid-body|baby-mermaid-tail/);
   assert.doesNotMatch(ambient, /ambient-fish|data-flee-fish/);
+  assert.doesNotMatch(scene, /spriteCatalog|SpriteActor|underwater-v2\/mermaid/);
   assert.doesNotMatch(css, /\.sea-object\[data-grounded\]::before|\.mermaid-tail-art|\.mermaid-face-photo/);
   assert.doesNotMatch(css, /\.sea-object-icon/);
-  assert.doesNotMatch(spriteActor, /drop-shadow/);
 });
 
 test("gates scene dragging and allows vertical modal touch scrolling", async () => {
