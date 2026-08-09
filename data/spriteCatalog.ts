@@ -38,60 +38,6 @@ export const spriteCatalog = {
       false,
     ),
   },
-  "pearl-shell": {
-    open: clip(
-      "/images/underwater-v2/interactives/pearl-shell/sheet.png",
-      8,
-      4,
-      8,
-      false,
-    ),
-  },
-  "fish-courier": {
-    swim: clip(
-      "/images/underwater-v2/interactives/fish-courier/sheet.png",
-      10,
-      5,
-      10,
-      true,
-    ),
-  },
-  "sea-turtle": {
-    swim: clip(
-      "/images/underwater-v2/interactives/sea-turtle/sheet.png",
-      10,
-      5,
-      10,
-      true,
-    ),
-  },
-  "treasure-chest": {
-    open: clip(
-      "/images/underwater-v2/interactives/treasure-chest/sheet.png",
-      8,
-      4,
-      8,
-      false,
-    ),
-  },
-  jellyfish: {
-    pulse: clip(
-      "/images/underwater-v2/interactives/jellyfish/sheet.png",
-      8,
-      4,
-      8,
-      true,
-    ),
-  },
-  crab: {
-    wave: clip(
-      "/images/underwater-v2/interactives/crab/sheet.png",
-      8,
-      4,
-      8,
-      true,
-    ),
-  },
 } as const;
 
 export type SpriteAssetId = keyof typeof spriteCatalog;

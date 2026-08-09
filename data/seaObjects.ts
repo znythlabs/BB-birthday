@@ -1,5 +1,4 @@
 import { eventDetails } from "./eventDetails";
-import { spriteCatalog, type SpriteClip } from "./spriteCatalog";
 
 export type SeaObjectKind =
   | "pearl-shell"
@@ -20,7 +19,7 @@ export type InteractiveSeaObjectData = {
   value: string;
   hint: string;
   assetAlt: string;
-  clip: SpriteClip;
+  videoSrc: string;
   grounded: boolean;
 };
 
@@ -36,7 +35,7 @@ export const interactiveObjects: readonly InteractiveSeaObjectData[] = [
     value: eventDetails.title,
     hint: "Meet Liliana",
     assetAlt: "A pearlescent pink and lavender shell",
-    clip: spriteCatalog["pearl-shell"].open,
+    videoSrc: "/images/underwater-v2/interactives/pearl-transparent.webm",
     grounded: true,
   },
   {
@@ -50,7 +49,7 @@ export const interactiveObjects: readonly InteractiveSeaObjectData[] = [
     value: eventDetails.invitationMessage,
     hint: "Catch the message",
     assetAlt: "A blue and coral fish courier",
-    clip: spriteCatalog["fish-courier"].swim,
+    videoSrc: "/images/underwater-v2/interactives/fish-transparent.webm",
     grounded: false,
   },
   {
@@ -64,7 +63,7 @@ export const interactiveObjects: readonly InteractiveSeaObjectData[] = [
     value: eventDetails.rsvp,
     hint: "Open RSVP details",
     assetAlt: "A teal sea turtle with a violet shell",
-    clip: spriteCatalog["sea-turtle"].swim,
+    videoSrc: "/images/underwater-v2/interactives/turtle-transparent.webm",
     grounded: false,
   },
   {
@@ -78,7 +77,7 @@ export const interactiveObjects: readonly InteractiveSeaObjectData[] = [
     value: eventDetails.venue,
     hint: "Reveal the venue",
     assetAlt: "A teal treasure chest with rose-gold trim",
-    clip: spriteCatalog["treasure-chest"].open,
+    videoSrc: "/images/underwater-v2/interactives/chest-transparent.webm",
     grounded: true,
   },
   {
@@ -92,7 +91,7 @@ export const interactiveObjects: readonly InteractiveSeaObjectData[] = [
     value: eventDetails.time,
     hint: "Find the time",
     assetAlt: "A glowing lavender and coral jellyfish",
-    clip: spriteCatalog.jellyfish.pulse,
+    videoSrc: "/images/underwater-v2/interactives/jellyfish-transparent.webm",
     grounded: false,
   },
   {
@@ -106,7 +105,7 @@ export const interactiveObjects: readonly InteractiveSeaObjectData[] = [
     value: eventDetails.date,
     hint: "Discover the date",
     assetAlt: "A coral and lavender reef crab",
-    clip: spriteCatalog.crab.wave,
+    videoSrc: "/images/underwater-v2/interactives/crab-transparent.webm",
     grounded: true,
   },
 ] as const;

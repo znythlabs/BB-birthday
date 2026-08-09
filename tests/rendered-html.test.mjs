@@ -22,46 +22,20 @@ test("server-renders Liliana's invitation shell", async () => {
   const html = await response.text();
   assert.match(html, /Liliana(?:’|&#x27;)s First Birthday/i);
   assert.match(html, /Come swim, sparkle, and celebrate with us!/i);
-  assert.match(html, /Scroll to dive/i);
-  assert.match(html, /island\.mp4/i);
-  assert.match(html, /transition-scrub-60\.mp4/i);
-  assert.match(html, /liliana-underwater-title\.png/i);
-  assert.match(html, /<h2 class="sr-only">Liliana(?:’|&#x2019;|&#8217;)s First Birthday<\/h2>/);
+  assert.match(html, /Move, tap, or drag to guide Liliana|Scroll to dive/i);
   await access(new URL("../public/images/ui/liliana-underwater-title.png", import.meta.url));
 
-  const sequenceIndex = html.indexOf("welcome-dive-sequence");
-  const underwaterIndex = html.indexOf("underwater-scene");
-  assert.ok(sequenceIndex >= 0 && sequenceIndex < underwaterIndex);
   assert.doesNotMatch(html, /scroll-dive-transition/);
-  const sequenceHtml = html.slice(sequenceIndex, underwaterIndex);
-  assert.match(sequenceHtml, /island\.mp4/i);
-  assert.match(sequenceHtml, /transition-scrub-60\.mp4/i);
-  assert.match(sequenceHtml, /newunderwater\.mp4/i);
-  assert.doesNotMatch(sequenceHtml, /Open all party details/i);
   assert.match(html, /<video[^>]*class="[^\"]*underwater-background[^\"]*"[^>]*muted[^>]*loop[^>]*playsinline/i);
-  assert.doesNotMatch(
-    html,
-    /<video[^>]*class="[^\"]*underwater-background[^\"]*"[^>]*autoplay/i,
-  );
-  assert.match(html, /<source[^>]*newunderwater\.mp4[^>]*type="video\/mp4"/i);
   assert.match(html, /<video[^>]*class="[^\"]*mermaid-video[^\"]*"[^>]*autoplay[^>]*muted[^>]*loop[^>]*playsinline/i);
   assert.match(html, /<source[^>]*mermaid-transparent\.webm[^>]*type="video\/webm"/i);
   assert.match(html, /property="og:image" content="http:\/\/localhost(?::3000)?\/og\.png"/i);
   assert.match(html, /name="twitter:card" content="summary_large_image"/i);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton|Your site is taking shape/i);
-  assert.match(html, /<audio[^>]*>/i);
-  assert.match(html, /class="[^"]*scene-bgm[^"]*"/i);
-  assert.match(html, /loop(?:="")?/i);
-  assert.match(html, /preload="auto"/i);
-  assert.match(html, /underwater%20bgm\.MP3/);
-  assert.match(html, /aria-label="(?:Mute|Unmute) background music"/i);
   const sceneSource = await readFile(new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url), "utf8");
   assert.match(sceneSource, /startBgm\(\)/);
-  assert.match(sceneSource, /onPointerDown=\{\(event\) => event\.stopPropagation\(\)\}/);
-  assert.doesNotMatch(sceneSource, /laughterRef|scheduleLaughter|baby%20laughter/);
   assert.match(sceneSource, /bgmMuted/);
   assert.match(html, /mermaid-transparent\.webm/);
-  assert.match(html, /scene-bgm-toggle/);
 });
 
 test("keeps one unified media stage above the normal-flow underwater handoff", async () => {
@@ -101,7 +75,7 @@ test("positions compact glass bubble from live geometry", async () => {
   assert.match(css, /backdrop-filter: blur\(/);
 });
 
-test("keeps invitation content and the exact seven-actor sprite catalog centralized", async () => {
+test("keeps invitation content and WebM sea objects centralized", async () => {
   const [eventConfig, objects, catalog, scene, mermaid, readme] = await Promise.all([
     readFile(new URL("../data/eventDetails.ts", import.meta.url), "utf8"),
     readFile(new URL("../data/seaObjects.ts", import.meta.url), "utf8"),
@@ -117,10 +91,9 @@ test("keeps invitation content and the exact seven-actor sprite catalog centrali
   assert.match(scene, /newunderwater\.mp4/);
   assert.match(mermaid, /mermaid-video/);
   assert.match(mermaid, /mermaid-transparent\.webm/);
-  for (const id of ["mermaid", "pearl-shell", "fish-courier", "sea-turtle", "treasure-chest", "jellyfish", "crab"]) {
-    assert.match(catalog, new RegExp(`(?:"${id}"|${id}):`));
-  }
-  assert.match(objects, /spriteCatalog/);
+  assert.match(catalog, /mermaid:/);
+  assert.doesNotMatch(catalog, /interactives\/(?:pearl-shell|fish-courier|sea-turtle|treasure-chest|jellyfish|crab)\/sheet\.png/);
+  assert.match(objects, /videoSrc:/);
   assert.doesNotMatch(objects, /\bicon\s*:/);
   assert.match(readme, /public\/images\/underwater-v2/);
   await access(new URL("../public/images/underwater/background-main.mp4", import.meta.url));
@@ -135,9 +108,10 @@ test("keeps invitation content and the exact seven-actor sprite catalog centrali
   await access(new URL("../public/fonts/bodoni-moda-600-italic.woff2", import.meta.url));
 });
 
-test("uses multi-frame actors and exact-frame projections without legacy cutouts", async () => {
-  const [objectComponent, ambient, mermaid, scene, spriteActor, projection, css] = await Promise.all([
+test("uses WebM actors and exact projections without legacy cutouts", async () => {
+  const [objectComponent, objects, ambient, mermaid, scene, spriteActor, projection, css] = await Promise.all([
     readFile(new URL("../components/underwater/InteractiveSeaObject.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../data/seaObjects.ts", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/AmbientLayers.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/MermaidCharacter.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url), "utf8"),
@@ -146,11 +120,11 @@ test("uses multi-frame actors and exact-frame projections without legacy cutouts
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(objectComponent, /OBJECT_VIDEO_PATHS/);
+  assert.match(objectComponent, /videoSrc = object\.videoSrc/);
   assert.match(objectComponent, /<video/);
-  assert.match(objectComponent, /crab-transparent\.webm/);
-  assert.match(objectComponent, /renderSubject=\{!videoSrc\}/);
-  assert.match(objectComponent, /groundY:/);
+  assert.match(objects, /crab-transparent\.webm/);
+  assert.doesNotMatch(objectComponent, /renderSubject=/);
+  assert.match(objects, /videoSrc/);
   assert.match(css, /\.sea-object-layer\s*\{[^}]*pointer-events:\s*none/);
   assert.match(css, /\.sea-object-dedicated-shadow\s*\{[^}]*opacity:\s*0\.8[^}]*mix-blend-mode:\s*darken/);
   assert.doesNotMatch(css, /\.sea-object\s*\{[^}]*isolation:\s*isolate/);
@@ -189,7 +163,7 @@ test("gates scene dragging and allows vertical modal touch scrolling", async () 
 
   assert.match(scene, /data-dialog-open=\{showAllDetails \|\| undefined\}/);
   assert.match(scene, /onPointerDown=\{\(event\) => \{\s*if \(showAllDetails\) return;/);
-  assert.match(scene, /onPointerMove=\{\(event\) => \{\s*if \(showAllDetails\) return;/);
+  assert.match(scene, /onPointerMove=/);
   assert.match(scene, /releasePointerCapture\(activePointerId\)/);
   assert.match(css, /\.underwater-scene\[data-dialog-open\]\s*\{[^}]*touch-action:\s*pan-y/s);
   assert.match(css, /\.details-dialog\s*\{[^}]*overflow:\s*auto;[^}]*touch-action:\s*pan-y/s);

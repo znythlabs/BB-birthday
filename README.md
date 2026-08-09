@@ -17,13 +17,13 @@ Use `npm run lint`, `npm run typecheck`, `npm run build`, or `npm test` to verif
 
 Invitation copy lives in `data/eventDetails.ts`. The date, time, venue, and RSVP values remain placeholders until the final information is confirmed.
 
-The six discoveries, labels, sprite clips, percentage positions, proximity radii, and grounded/floating behavior live in `data/interactiveObjects.ts`. The shared clip catalog is in `data/spriteCatalog.ts`.
+The six discoveries, labels, WebM assets, percentage positions, proximity radii, and grounded/floating behavior live in `data/seaObjects.ts`.
 
 ## Artwork map
 
 - `public/images/underwater/background-main.png` — immutable 2048×1152 scene background
 - `public/images/underwater-v2/mermaid/` — 30 reviewed Liliana frames, sheets, contact sheets, and manifests
-- `public/images/underwater-v2/interactives/` — 52 reviewed object frames, sheets, contact sheets, and manifests
+- `public/images/underwater-v2/interactives/` — transparent WebM sea-object animations and dedicated shadow images
 - `spriterrific-runs/` — raw anchors, every unmasked intermediate, keyed derivatives, rejected attempts, and repair archives
 - `docs/assets/underwater-v2-production.json` — production contract, frame counts, rig coordinates, and identity requirements
 - `public/fonts/` — locally bundled Bodoni Moda headline fonts

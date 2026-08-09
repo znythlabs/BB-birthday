@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef } from "react";
 import { interactiveObjects } from "@/data/seaObjects";
 
 export function PartyDetailsDialog({ onClose }: { onClose: () => void }) {
@@ -39,14 +39,14 @@ export function PartyDetailsDialog({ onClose }: { onClose: () => void }) {
           {interactiveObjects.map((object) => (
             <div className="details-list-item" key={object.id}>
               <span className="details-list-art" aria-hidden="true">
-                <span
-                  className="details-list-sprite"
-                  style={{
-                    backgroundImage: `url(${object.clip.sheet})`,
-                    backgroundPosition: "0% 0%",
-                    backgroundRepeat: "no-repeat",
-                    backgroundSize: `${object.clip.columns * 100}% ${object.clip.rows * 100}%`,
-                  } as CSSProperties}
+                <video
+                  className="details-list-video"
+                  src={object.videoSrc}
+                  muted
+                  autoPlay
+                  loop
+                  playsInline
+                  preload="metadata"
                 />
               </span>
               <div><dt>{object.label}</dt><dd>{object.value}</dd></div>
