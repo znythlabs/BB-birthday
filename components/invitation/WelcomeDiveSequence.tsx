@@ -206,7 +206,21 @@ export function WelcomeDiveSequence({
             </h1>
             <p>{eventDetails.invitationMessage}</p>
             {!adventureStarted ? (
-              <button type="button" className="start-adventure-button" onClick={onStartAdventure}>
+              <button
+                type="button"
+                className="start-adventure-button"
+                onClick={() => {
+                  if (
+                    !window.matchMedia("(max-width: 1200px)").matches &&
+                    !document.fullscreenElement
+                  ) {
+                    void document.documentElement
+                      .requestFullscreen()
+                      .catch(() => undefined);
+                  }
+                  onStartAdventure();
+                }}
+              >
                 Start the adventure
               </button>
             ) : null}
