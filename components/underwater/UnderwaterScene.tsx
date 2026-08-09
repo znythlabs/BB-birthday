@@ -91,6 +91,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const pinnedIdRef = useRef<string | null>(null);
   const dismissedIdRef = useRef<string | null>(null);
   const reducedMotionRef = useRef(false);
+  const mobileRef = useRef(false);
   const pointerMotionRef = useRef({ x: 0, y: 0, time: 0, speed: 0 });
   const pointerTargetRef = useRef<Point | null>(null);
   const joystickRef = useRef({ x: 0, y: 0, pointerId: null as number | null });
@@ -362,11 +363,14 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
     if (!scene) return;
 
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const mobileQuery = window.matchMedia(MOBILE_MEDIA_QUERY);
     const syncMotionPreference = () => {
       reducedMotionRef.current = motionQuery.matches;
+      mobileRef.current = mobileQuery.matches;
     };
     syncMotionPreference();
     motionQuery.addEventListener("change", syncMotionPreference);
+    mobileQuery.addEventListener("change", syncMotionPreference);
 
     const resizeObserver = new ResizeObserver(([entry]) => {
       const previousSize = sizeRef.current;
@@ -553,7 +557,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         }
         objectPositionsRef.current = nextObjects;
         objectFacingsRef.current = nextFacings;
-        if (now - lastVisualUpdate >= 80) {
+        if (now - lastVisualUpdate >= (mobileRef.current ? 80 : 0)) {
           objectRenderRef.current = { positions: nextObjects, facings: nextFacings };
           setObjectPositions(nextObjects);
           setObjectFacings(nextFacings);
@@ -643,6 +647,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       stopAnimation();
       resizeObserver.disconnect();
       motionQuery.removeEventListener("change", syncMotionPreference);
+      mobileQuery.removeEventListener("change", syncMotionPreference);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [updateActiveId]);
