@@ -503,18 +503,6 @@ button { color: inherit; }
   object-fit: contain;
 }
 
-/* iOS Safari renders the baked-in black of these WebMs as opaque boxes
-   (Android's VP9 decoder lifts near-black to translucent, iOS does not).
-   Screen blending makes black transparent while keeping the bright objects
-   visible. Scoped to iOS so Android/desktop rendering is untouched. */
-.underwater-scene.ios-device .sea-object-video {
-  mix-blend-mode: screen;
-}
-
-.underwater-scene.ios-device .sea-object-dedicated-shadow {
-  mix-blend-mode: darken;
-}
-
 .sea-object::after {
   content: "";
   position: absolute;
@@ -759,7 +747,8 @@ button { color: inherit; }
     visibility: visible !important;
     pointer-events: auto !important;
   }
-  .rotate-device-prompt {
+  .rotate-device-prompt,
+  .welcome-rotate-prompt {
     position: absolute;
     z-index: 120;
     inset: 0;
@@ -772,9 +761,12 @@ button { color: inherit; }
     color: white;
     text-align: center;
   }
+  .welcome-rotate-prompt { z-index: 140; }
   .rotate-device-icon { font-size: 3.2rem; line-height: 1; animation: rotate-prompt 1.8s ease-in-out infinite; }
-  .rotate-device-prompt strong { font-family: Georgia, serif; font-size: 1.55rem; }
-  .rotate-device-prompt span { max-width: 280px; font-size: 0.85rem; opacity: 0.82; }
+  .rotate-device-prompt strong,
+  .welcome-rotate-prompt strong { font-family: Georgia, serif; font-size: 1.55rem; }
+  .rotate-device-prompt span,
+  .welcome-rotate-prompt span { max-width: 280px; font-size: 0.85rem; opacity: 0.82; }
   .rotate-device-button {
     min-height: 46px;
     margin-top: 12px;
@@ -891,20 +883,13 @@ button { color: inherit; }
 }
 
 @media (max-width: 1200px) and (orientation: portrait) {
-  .rotate-device-prompt { display: grid; }
+  .rotate-device-prompt,
+  .welcome-rotate-prompt { display: grid; }
   .mobile-joystick { display: none; }
 }
 
 @media (max-width: 1200px) and (orientation: landscape) {
   .mobile-joystick { display: grid; }
-}
-
-@media (max-width: 1200px) {
-  .underwater-scene:fullscreen .rotate-device-prompt,
-  .welcome-dive-pin[data-underwater-committed] .rotate-device-prompt { display: none; }
-  .underwater-scene:fullscreen .mobile-joystick,
-  .underwater-scene:fullscreen .mobile-fullscreen-button,
-  .welcome-dive-pin[data-underwater-committed] .mobile-joystick { display: grid; }
 }
 
 @media (max-height: 650px) and (orientation: landscape) {

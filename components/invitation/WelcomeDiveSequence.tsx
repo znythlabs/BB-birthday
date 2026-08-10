@@ -10,7 +10,7 @@ import {
   createRafVideoSeeker,
   scrollProgressToTime,
 } from "@/lib/scrollVideo.mjs";
-import { enterMobileFullscreen } from "@/lib/mobileFullscreen";
+import { enterMobileFullscreen, isIphoneLike } from "@/lib/mobileFullscreen";
 
 export function WelcomeDiveSequence({
   adventureStarted,
@@ -28,6 +28,7 @@ export function WelcomeDiveSequence({
   const shadeRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(0);
   const [underwaterActive, setUnderwaterActive] = useState(false);
+  const [needsManualRotation, setNeedsManualRotation] = useState(false);
   const committedRef = useRef(false);
 
   useEffect(() => {
@@ -212,7 +213,7 @@ export function WelcomeDiveSequence({
         </video>
 
         <div ref={underwaterRef} className="welcome-dive-underwater">
-          <UnderwaterScene active={underwaterActive} adventureStarted={adventureStarted} />
+          <UnderwaterScene active={underwaterActive} />
         </div>
 
         <div ref={shadeRef} className="welcome-shade" aria-hidden="true" />
@@ -230,6 +231,7 @@ export function WelcomeDiveSequence({
                 className="start-adventure-button"
                 onClick={() => {
                   if (window.matchMedia("(max-width: 1200px)").matches) {
+                    if (isIphoneLike()) setNeedsManualRotation(true);
                     void enterMobileFullscreen();
                   } else if (!document.fullscreenElement) {
                     void document.documentElement
@@ -249,6 +251,14 @@ export function WelcomeDiveSequence({
             <i />
           </div>
         </div>
+
+        {needsManualRotation && !underwaterActive ? (
+          <div className="welcome-rotate-prompt" role="status">
+            <span className="rotate-device-icon" aria-hidden="true">↻</span>
+            <strong>Rotate your iPhone</strong>
+            <span>Turn your phone sideways to continue the adventure in landscape.</span>
+          </div>
+        ) : null}
       </div>
     </section>
   );

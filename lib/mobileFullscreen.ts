@@ -9,12 +9,20 @@ type FullscreenElement = HTMLElement & {
 
 const MOBILE_MEDIA_QUERY = "(max-width: 1200px)";
 
-// iPhone/iPad Safari only supports fullscreen for <video> via webkitEnterFullscreen;
-// document element fullscreen is unsupported and requestFullscreen is a no-op there.
-export function isIos() {
+export function isIphoneLike() {
   if (typeof window === "undefined") return false;
-  const ua = window.navigator.userAgent;
-  return /iPhone|iPad|iPod/i.test(ua);
+  return /iPhone|iPod/i.test(window.navigator.userAgent);
+}
+
+export function isIpad() {
+  if (typeof window === "undefined") return false;
+  const navigator = window.navigator;
+  return /iPad/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+export function isIos() {
+  return isIphoneLike() || isIpad();
 }
 
 export function isMobileFullscreen() {
@@ -49,11 +57,12 @@ export async function unlockMobileOrientation() {
 export async function enterMobileFullscreen() {
   if (!window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
 
-  // iOS does not support element/document fullscreen; requesting it is a no-op
-  // that throws or resolves without entering fullscreen, so skip it entirely.
-  // The landscape flow relies on the rotate prompt + orientation media queries.
-  if (isIos()) {
-    await lockMobileOrientation(); // no-op on iOS, kept for API symmetry
+  // iPhone Safari still cannot fullscreen arbitrary page elements. Keep the
+  // request inside the original tap, but use the rotate-to-landscape UI there.
+  // iPad is intentionally NOT included here: modern iPadOS can use the
+  // Fullscreen API, even though orientation locking may still be unavailable.
+  if (isIphoneLike()) {
+    await lockMobileOrientation();
     return;
   }
 

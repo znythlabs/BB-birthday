@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import type { InteractiveSeaObjectData } from "@/data/seaObjects";
+import { isIos } from "@/lib/mobileFullscreen";
 
 type Point = { x: number; y: number };
 
@@ -51,6 +52,7 @@ export function InteractiveSeaObject({
   const shadowSrc = OBJECT_SHADOW_PATHS[object.kind];
   const mobileShadowSrc = MOBILE_SHADOW_PATHS[object.kind];
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
+  const [useIosPoster, setUseIosPoster] = useState<boolean>(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const globalX = position?.x ?? (object.x / 100) * sceneWidth;
@@ -80,6 +82,7 @@ export function InteractiveSeaObject({
   } as CSSProperties;
 
   useEffect(() => {
+    setUseIosPoster(isIos());
     const query = window.matchMedia("(max-width: 1200px)");
     const sync = () => setIsMobile(query.matches);
     sync();
@@ -136,26 +139,37 @@ export function InteractiveSeaObject({
       ) : null}
       {videoSrc ? (
         <span className="sea-object-media">
-          <video
-            ref={videoRef}
-            className="sea-object-video"
-            style={{ transform: `scaleX(${visualFacing})` }}
-            autoPlay={!reducedMotion}
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            tabIndex={-1}
-            aria-hidden="true"
-            onLoadedData={(event) => {
-              if (reducedMotion) event.currentTarget.pause();
-            }}
-          >
-            {mobileVideoSrc ? (
-              <source media="(max-width: 1200px)" src={mobileVideoSrc} type="video/webm" />
-            ) : null}
-            <source src={videoSrc} type="video/webm" />
-          </video>
+          {useIosPoster === true ? (
+            <img
+              className="sea-object-video sea-object-ios-poster"
+              src={object.posterSrc}
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              style={{ transform: `scaleX(${visualFacing})` }}
+            />
+          ) : (
+            <video
+              ref={videoRef}
+              className="sea-object-video"
+              style={{ transform: `scaleX(${visualFacing})` }}
+              autoPlay={!reducedMotion}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              tabIndex={-1}
+              aria-hidden="true"
+              onLoadedData={(event) => {
+                if (reducedMotion) event.currentTarget.pause();
+              }}
+            >
+              {mobileVideoSrc ? (
+                <source media="(max-width: 1200px)" src={mobileVideoSrc} type="video/webm" />
+              ) : null}
+              <source src={videoSrc} type="video/webm" />
+            </video>
+          )}
         </span>
       ) : null}
       <span className="sea-object-discovery" aria-hidden="true">
