@@ -22,22 +22,22 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 
   const socialImage = new URL("/og.png", origin).toString();
-  const title = "Liliana’s First Birthday | Under the Sea";
-  const description = "Swim through Liliana’s magical underwater first birthday invitation and discover the party details.";
+  const title = "Lilianna’s First Birthday | Under the Sea";
+  const description = "Swim through Lilianna’s magical underwater first birthday invitation and discover the party details.";
 
   return {
     title,
     description,
     openGraph: {
-      title: "Liliana’s First Birthday",
+      title: "Lilianna’s First Birthday",
       description: "A magical under-the-sea birthday invitation.",
       type: "website",
       url: origin,
-      images: [{ url: socialImage, width: 1200, height: 630, alt: "Liliana’s magical underwater first birthday invitation" }],
+      images: [{ url: socialImage, width: 1200, height: 630, alt: "Lilianna’s magical underwater first birthday invitation" }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Liliana’s First Birthday",
+      title: "Lilianna’s First Birthday",
       description: "A magical under-the-sea birthday invitation.",
       images: [socialImage],
     },

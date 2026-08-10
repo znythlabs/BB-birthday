@@ -29,6 +29,11 @@ const FISH_VIDEOS = [
   "/images/underwater-v2/interactives/small%20fishes/opt/smallfish2-transparent.webm",
   "/images/underwater-v2/interactives/small%20fishes/opt/smallfish3-transparent.webm",
 ] as const;
+const MOBILE_FISH_VIDEOS = [
+  "/images/mobile/smallfish1-transparent-mobile.webm",
+  "/images/mobile/smallfish2-transparent-mobile.webm",
+  "/images/mobile/smallfish3-transparent-mobile.webm",
+] as const;
 
 const MAX_TILT = 0.14;
 const FLIP_DEBOUNCE_MS = 1200;
@@ -360,20 +365,31 @@ export function BackgroundFishSchools({ mermaidRef }: Props) {
           ref={(element) => {
             groupRefs.current[index] = element;
           }}
-          className="background-fish-group"
+          className={"background-fish-group" + (index >= SCHOOL_SIZE ? " background-fish-group--desktop-only" : "")}
         >
           <video
             ref={(element) => {
               videoRefs.current[index] = element;
             }}
-            src={FISH_VIDEOS[index % SCHOOL_SIZE]}
             muted
             autoPlay
             loop
             playsInline
             preload="metadata"
             tabIndex={-1}
-          />
+          >
+            {index < SCHOOL_SIZE ? (
+              <source
+                media="(max-width: 1200px)"
+                src={MOBILE_FISH_VIDEOS[index]}
+                type="video/webm"
+              />
+            ) : null}
+            <source
+              src={FISH_VIDEOS[index % SCHOOL_SIZE]}
+              type="video/webm"
+            />
+          </video>
         </div>
       ))}
     </div>

@@ -10,6 +10,7 @@ import {
   createRafVideoSeeker,
   scrollProgressToTime,
 } from "@/lib/scrollVideo.mjs";
+import { enterMobileFullscreen } from "@/lib/mobileFullscreen";
 
 export function WelcomeDiveSequence({
   adventureStarted,
@@ -78,6 +79,13 @@ export function WelcomeDiveSequence({
     gsap.registerPlugin(ScrollTrigger);
     transition.pause();
 
+    const refreshMobileTrigger = () => {
+      if (window.matchMedia("(max-width: 1200px)").matches) ScrollTrigger.refresh();
+    };
+    window.addEventListener("resize", refreshMobileTrigger);
+    window.addEventListener("orientationchange", refreshMobileTrigger);
+    document.addEventListener("fullscreenchange", refreshMobileTrigger);
+
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
       const seeker = createRafVideoSeeker(transition);
@@ -123,8 +131,11 @@ export function WelcomeDiveSequence({
             ) {
               applyProgress(1);
               committedRef.current = true;
+              pin.dataset.underwaterCommitted = "true";
               self.disable(false);
               underwater.style.pointerEvents = "auto";
+              document.documentElement.classList.add("mobile-underwater-locked");
+              document.body.classList.add("mobile-underwater-locked");
             }
           },
           onRefresh: (self) => {
@@ -142,7 +153,15 @@ export function WelcomeDiveSequence({
       };
     });
 
-    return () => media.revert();
+    return () => {
+      window.removeEventListener("resize", refreshMobileTrigger);
+      window.removeEventListener("orientationchange", refreshMobileTrigger);
+      document.removeEventListener("fullscreenchange", refreshMobileTrigger);
+      pin.removeAttribute("data-underwater-committed");
+      document.documentElement.classList.remove("mobile-underwater-locked");
+      document.body.classList.remove("mobile-underwater-locked");
+      media.revert();
+    };
   }, [duration]);
 
   return (
@@ -193,7 +212,7 @@ export function WelcomeDiveSequence({
         </video>
 
         <div ref={underwaterRef} className="welcome-dive-underwater">
-          <UnderwaterScene active={underwaterActive} />
+          <UnderwaterScene active={underwaterActive} adventureStarted={adventureStarted} />
         </div>
 
         <div ref={shadeRef} className="welcome-shade" aria-hidden="true" />
@@ -201,7 +220,7 @@ export function WelcomeDiveSequence({
         <div ref={contentRef} className="welcome-dive-content">
           <div className="welcome-copy">
             <h1 id="welcome-title" aria-label={eventDetails.title}>
-              <span>Liliana’s</span>
+              <span>Lilianna’s</span>
               <span>First Birthday</span>
             </h1>
             <p>{eventDetails.invitationMessage}</p>
@@ -210,10 +229,9 @@ export function WelcomeDiveSequence({
                 type="button"
                 className="start-adventure-button"
                 onClick={() => {
-                  if (
-                    !window.matchMedia("(max-width: 1200px)").matches &&
-                    !document.fullscreenElement
-                  ) {
+                  if (window.matchMedia("(max-width: 1200px)").matches) {
+                    void enterMobileFullscreen();
+                  } else if (!document.fullscreenElement) {
                     void document.documentElement
                       .requestFullscreen()
                       .catch(() => undefined);

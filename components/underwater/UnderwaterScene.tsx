@@ -34,10 +34,27 @@ import {
 } from "@/lib/objectMotion.mjs";
 import { AmbientLayers } from "./AmbientLayers";
 import { BackgroundFishSchools } from "./BackgroundFishSchools";
+import {
+  isBgmMuted as isWebBgmMuted,
+  resumeBgmIfNeeded as resumeWebBgmIfNeeded,
+  setBgmMuted as setWebBgmMuted,
+  startBgm as startWebBgm,
+} from "@/lib/bgmManager";
+import {
+  resumeMermaidAudioIfNeeded as resumeWebMermaidIfNeeded,
+  setMermaidMuted as setWebMermaidMuted,
+  startMermaidAudio as startWebMermaidAudio,
+  syncMermaidToVideo as syncWebMermaidToVideo,
+} from "@/lib/mermaidAudioManager";
 import { BubbleMessage } from "./BubbleMessage";
 import { InteractiveSeaObject } from "./InteractiveSeaObject";
 import { MermaidCharacter } from "./MermaidCharacter";
 import { PartyDetailsDialog } from "./PartyDetailsDialog";
+import {
+  enterMobileFullscreen as requestMobileFullscreen,
+  isMobileFullscreen,
+  toggleMobileFullscreen,
+} from "@/lib/mobileFullscreen";
 
 type Point = { x: number; y: number };
 type ObjectPositions = Partial<Record<SeaObjectKind, Point>>;
@@ -58,11 +75,12 @@ const createInitialObjectPositions = (width: number, height: number): ObjectPosi
     ]),
   );
 
-export function UnderwaterScene({ active }: { active?: boolean } = {}) {
+export function UnderwaterScene({ active, adventureStarted }: { active?: boolean; adventureStarted?: boolean } = {}) {
   const sceneRef = useRef<HTMLElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const cursorTrailRef = useRef<HTMLSpanElement>(null);
   const cursorIdleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const detailCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const draggingPointerRef = useRef<number | null>(null);
   const sizeRef = useRef({ width: 0, height: 0 });
@@ -74,7 +92,12 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const reducedMotionRef = useRef(false);
   const mobileRef = useRef(false);
   const pointerTargetRef = useRef<Point | null>(null);
-  const joystickRef = useRef({ x: 0, y: 0, pointerId: null as number | null });
+  const joystickRef = useRef({
+    x: 0,
+    y: 0,
+    pointerId: null as number | null,
+    velocity: { x: 0, y: 0 },
+  });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const jellyfishTargetRef = useRef<Point | null>(null);
@@ -82,53 +105,41 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const objectFacingsRef = useRef<ObjectFacings>({});
   const turtleTargetRef = useRef<Point | null>(null);
   const crabTargetRef = useRef<Point | null>(null);
-  const bgmRef = useRef<HTMLAudioElement>(null);
   const backgroundRef = useRef<HTMLVideoElement>(null);
+  const mermaidVideoRef = useRef<HTMLVideoElement>(null);
   const bgmStartedRef = useRef(false);
   const [bgmMuted, setBgmMuted] = useState(true);
   const [sceneEntered, setSceneEntered] = useState(false);
   const startBgm = useCallback(() => {
-    const audio = bgmRef.current;
-    if (!audio || bgmStartedRef.current) return;
+    if (bgmStartedRef.current) return;
     bgmStartedRef.current = true;
-    audio.muted = false;
     setBgmMuted(false);
-    void audio.play().catch(() => {
-      bgmStartedRef.current = false;
-      audio.muted = true;
-      setBgmMuted(true);
-    });
+    void startWebBgm();
+    void startWebMermaidAudio();
   }, []);
   const enterMobileFullscreen = useCallback(async () => {
     if (!window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
-    try {
-      if (!document.fullscreenElement) await sceneRef.current?.requestFullscreen();
-      const orientation = window.screen.orientation as ScreenOrientation & { lock?: (mode: "landscape") => Promise<void> };
-      await orientation.lock?.("landscape");
-    } catch {
-      // ponytail: iOS blocks orientation lock; physical rotation remains fallback.
-    }
-    setIsFullscreen(Boolean(document.fullscreenElement));
+    await requestMobileFullscreen();
+    setIsFullscreen(isMobileFullscreen());
   }, []);
-  const toggleMobileFullscreen = useCallback(async () => {
-    if (document.fullscreenElement) {
-      try { await document.exitFullscreen(); } catch { /* Browser may deny exit. */ }
-      return;
-    }
-    await enterMobileFullscreen();
-  }, [enterMobileFullscreen]);
 
   const toggleBgm = useCallback(() => {
-    const audio = bgmRef.current;
-    if (!audio) return;
     if (bgmMuted) {
+      setBgmMuted(false);
       bgmStartedRef.current = false;
       startBgm();
       return;
     }
-    audio.muted = true;
     setBgmMuted(true);
+    setWebBgmMuted(true);
+    setWebMermaidMuted(true);
   }, [bgmMuted, startBgm]);
+
+  // Website sound is one state: BGM and mermaid laugh must always mute together.
+  useEffect(() => {
+    setWebBgmMuted(bgmMuted);
+    setWebMermaidMuted(bgmMuted);
+  }, [bgmMuted]);
 
   useEffect(() => {
     const moveGlobalCursor = (event: MouseEvent) => {
@@ -160,7 +171,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   }, []);
 
   useEffect(() => {
-    const syncFullscreenState = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    const syncFullscreenState = () => setIsFullscreen(isMobileFullscreen());
     document.addEventListener("fullscreenchange", syncFullscreenState);
     return () => document.removeEventListener("fullscreenchange", syncFullscreenState);
   }, []);
@@ -197,6 +208,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   }, [startBgm]);
 
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [hasDiscovered, setHasDiscovered] = useState(false);
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
@@ -208,6 +220,27 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
 
     observer.observe(scene);
     return () => observer.disconnect();
+  }, [active]);
+
+  useEffect(() => {
+    if (!adventureStarted || !window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
+    void requestMobileFullscreen();
+  }, [adventureStarted]);
+
+  // The desktop underwater background has preload="none", so on a cold cache
+  // it has no decoded frame when the transition hands off — the scene would
+  // flash the plain blue page background until its first frame decodes.
+  // The transition's final frame matches this video's first frame, so once
+  // the handoff begins we kick off the background download and start playback;
+  // by deferring it until the scrub finishes, the 28 MB background never
+  // competes with the 48 MB transition video for bandwidth.
+  useEffect(() => {
+    if (window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
+    if (!active) return;
+    const background = backgroundRef.current;
+    if (!background) return;
+    if (background.readyState >= 2 && !background.paused) return;
+    void background.play().catch(() => undefined);
   }, [active]);
 
   useEffect(() => {
@@ -228,11 +261,58 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       return () => scene.removeEventListener("play", pauseVideos, true);
     }
 
-    videos.forEach((video) => {
-      void video.play().catch(() => {});
+    videos.forEach((video, index) => {
+      const delay = isMobile ? index * 90 : 0;
+      window.setTimeout(() => {
+        void video.play().catch(() => {});
+      }, delay);
     });
     startBgm();
   }, [sceneEntered, startBgm]);
+
+  // Keep the mermaid laugh synced to the mermaid animation. The audio is
+  // driven by the video's currentTime, so on mobile (where the video can
+  // stutter under decode load while Web Audio keeps perfect real-time) we
+  // re-sync on every video timeupdate/seeked/play event plus a slow backup
+  // interval. This keeps the laugh frame-aligned on low-end phones.
+  useEffect(() => {
+    if (!sceneEntered) return;
+    const video = mermaidVideoRef.current;
+    const sync = () => syncWebMermaidToVideo(video);
+    if (video) {
+      video.addEventListener("timeupdate", sync);
+      video.addEventListener("seeked", sync);
+      video.addEventListener("play", sync);
+      video.addEventListener("waiting", sync);
+    }
+    const timer = window.setInterval(sync, 500);
+    return () => {
+      if (video) {
+        video.removeEventListener("timeupdate", sync);
+        video.removeEventListener("seeked", sync);
+        video.removeEventListener("play", sync);
+        video.removeEventListener("waiting", sync);
+      }
+      window.clearInterval(timer);
+    };
+  }, [sceneEntered]);
+
+  useEffect(() => {
+    if (!window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
+    const resume = () => {
+      if (document.hidden) return;
+      resumeWebBgmIfNeeded();
+      resumeWebMermaidIfNeeded();
+    };
+    document.addEventListener("visibilitychange", resume);
+    document.addEventListener("fullscreenchange", resume);
+    window.addEventListener("orientationchange", resume);
+    return () => {
+      document.removeEventListener("visibilitychange", resume);
+      document.removeEventListener("fullscreenchange", resume);
+      window.removeEventListener("orientationchange", resume);
+    };
+  }, []);
   const [objectFacings, setObjectFacings] = useState<ObjectFacings>({});
   const [objectPositions, setObjectPositions] = useState<ObjectPositions>({});
   const objectRenderRef = useRef({ positions: {} as ObjectPositions, facings: {} as ObjectFacings });
@@ -254,7 +334,10 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const setTargetPoint = useCallback((x: number, y: number) => {
     const { width, height } = sizeRef.current;
     if (!width || !height) return;
-    const topPadding = Math.min(172, Math.max(118, height * 0.2));
+    const isMobile = window.matchMedia(MOBILE_MEDIA_QUERY).matches;
+    const topPadding = isMobile
+      ? Math.min(100, Math.max(36, height * 0.08))
+      : Math.min(172, Math.max(118, height * 0.2));
     targetRef.current = {
       x: clamp(x, MERMAID_EDGE_PADDING, width - MERMAID_EDGE_PADDING),
       y: clamp(y, topPadding, height - MERMAID_EDGE_PADDING),
@@ -278,6 +361,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       pinnedIdRef.current = object.id;
       dismissedIdRef.current = null;
       updateActiveId(object.id);
+      setHasDiscovered(true);
       pointerTargetRef.current = null;
       const point = objectPositionsRef.current[object.kind] ?? {
         x: (object.x / 100) * width,
@@ -289,10 +373,25 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   );
 
   const closeActiveDetail = useCallback(() => {
+    if (detailCloseTimerRef.current) clearTimeout(detailCloseTimerRef.current);
+    detailCloseTimerRef.current = null;
     dismissedIdRef.current = activeIdRef.current;
     pinnedIdRef.current = null;
     updateActiveId(null);
   }, [updateActiveId]);
+
+  useEffect(() => {
+    if (
+      activeId !== "fish-courier" ||
+      !window.matchMedia(MOBILE_MEDIA_QUERY).matches
+    ) return;
+    if (detailCloseTimerRef.current) clearTimeout(detailCloseTimerRef.current);
+    detailCloseTimerRef.current = setTimeout(closeActiveDetail, 3000);
+    return () => {
+      if (detailCloseTimerRef.current) clearTimeout(detailCloseTimerRef.current);
+      detailCloseTimerRef.current = null;
+    };
+  }, [activeId, closeActiveDetail]);
 
   const openAllDetails = useCallback(() => {
     previousFocusRef.current = document.activeElement as HTMLElement | null;
@@ -306,10 +405,12 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
     }
     draggingPointerRef.current = null;
     closeActiveDetail();
+    document.body.classList.add("underwater-dialog-open");
     setShowAllDetails(true);
   }, [closeActiveDetail]);
 
   const closeAllDetails = useCallback(() => {
+    document.body.classList.remove("underwater-dialog-open");
     setShowAllDetails(false);
     requestAnimationFrame(() => previousFocusRef.current?.focus());
   }, []);
@@ -394,6 +495,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
 
     let running = true;
     let lastVisualUpdate = 0;
+    let lastObjectVisualUpdate = 0;
     let lastFrameAt = 0;
     let facing: 1 | -1 = 1;
     const renderFrame = (now: number) => {
@@ -406,22 +508,74 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       lastFrameAt = now;
       const joystick = joystickRef.current;
       if (joystick.pointerId !== null) {
+        // Joystick: eased analog velocity control. The velocity eases toward the
+        // joystick target (exponential smoothing, same style as desktop's
+        // smoothToward), then eases to rest on release — no instant teleporting.
         const { width, height } = sizeRef.current;
-        targetRef.current = {
-          x: clamp(current.x + joystick.x * 420 * deltaSeconds, MERMAID_EDGE_PADDING, width - MERMAID_EDGE_PADDING),
-          y: clamp(current.y + joystick.y * 420 * deltaSeconds, Math.min(172, Math.max(118, height * 0.2)), height - MERMAID_EDGE_PADDING),
-        };
+        const maxSpeed = 480;
+        const easeRate = 5.5;
+        const targetVelocity = { x: joystick.x * maxSpeed, y: joystick.y * maxSpeed };
+        const vel = joystick.velocity;
+        vel.x += (targetVelocity.x - vel.x) * (1 - Math.exp(-easeRate * deltaSeconds));
+        vel.y += (targetVelocity.y - vel.y) * (1 - Math.exp(-easeRate * deltaSeconds));
+        const nextX = clamp(
+          current.x + vel.x * deltaSeconds,
+          MERMAID_EDGE_PADDING,
+          width - MERMAID_EDGE_PADDING,
+        );
+        const nextY = clamp(
+          current.y + vel.y * deltaSeconds,
+          mobileRef.current
+            ? Math.min(100, Math.max(36, height * 0.08))
+            : Math.min(172, Math.max(118, height * 0.2)),
+          height - MERMAID_EDGE_PADDING,
+        );
+        // Flip the mermaid based on the joystick's horizontal input directly,
+        // since the follow target is synced to current and would never trigger a flip.
+        if (Math.abs(joystick.x) > 0.08) facing = joystick.x > 0 ? 1 : -1;
+        current.x = nextX;
+        current.y = nextY;
+        targetRef.current = { ...current };
+      } else if (Math.abs(joystick.velocity.x) > 1 || Math.abs(joystick.velocity.y) > 1) {
+        // Joystick released: ease the remaining velocity to rest (coast to a stop).
+        const { width, height } = sizeRef.current;
+        const vel = joystick.velocity;
+        const decayRate = 4;
+        const decay = 1 - Math.exp(-decayRate * deltaSeconds);
+        vel.x -= vel.x * decay;
+        vel.y -= vel.y * decay;
+        const nextX = clamp(
+          current.x + vel.x * deltaSeconds,
+          MERMAID_EDGE_PADDING,
+          width - MERMAID_EDGE_PADDING,
+        );
+        const nextY = clamp(
+          current.y + vel.y * deltaSeconds,
+          mobileRef.current
+            ? Math.min(100, Math.max(36, height * 0.08))
+            : Math.min(172, Math.max(118, height * 0.2)),
+          height - MERMAID_EDGE_PADDING,
+        );
+        current.x = nextX;
+        current.y = nextY;
+        targetRef.current = { ...current };
+        if (Math.abs(vel.x) <= 1 && Math.abs(vel.y) <= 1) {
+          vel.x = 0;
+          vel.y = 0;
+        }
       } else {
         const pointerTarget = pointerTargetRef.current;
         if (pointerTarget) targetRef.current = smoothToward(target, pointerTarget, deltaSeconds, 7);
       }
       facing = faceTowardTarget(current, targetRef.current, facing);
-      const movementAmount = reducedMotionRef.current ? 1 : deltaSeconds;
-      const next = reducedMotionRef.current
-        ? target
-        : smoothToward(current, targetRef.current, movementAmount, 3.2);
-      current.x = next.x;
-      current.y = next.y;
+      if (joystick.pointerId === null) {
+        const movementAmount = reducedMotionRef.current ? 1 : deltaSeconds;
+        const next = reducedMotionRef.current
+          ? target
+          : smoothToward(current, targetRef.current, movementAmount, 3.2);
+        current.x = next.x;
+        current.y = next.y;
+      }
 
       const { width, height } = sizeRef.current;
       if (width && height && deltaSeconds > 0 && !reducedMotionRef.current) {
@@ -448,12 +602,12 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
           : jellyfish;
         const fishTarget = fish
           ? {
-              x: clamp(current.x - 120, 110, width - 110),
-              y: clamp(current.y - 36, height * 0.2, height * 0.92),
+              x: clamp(current.x - (mobileRef.current ? 8 : 30), 110, width - 110),
+              y: clamp(current.y - (mobileRef.current ? 12 : 20), height * 0.2, height * 0.92),
             }
           : null;
         const nextFish = fish && fishTarget
-          ? followTarget(fish, fishTarget, 1 - Math.exp(-0.35 * deltaSeconds))
+          ? followTarget(fish, fishTarget, 1 - Math.exp(-1.2 * deltaSeconds))
           : fish;
         const turtleBounds = turtleSurfaceBounds(width, height);
         if (turtle && !turtleTargetRef.current) {
@@ -509,10 +663,11 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         }
         objectPositionsRef.current = nextObjects;
         objectFacingsRef.current = nextFacings;
-        if (now - lastVisualUpdate >= (mobileRef.current ? 80 : 0)) {
+        if (now - lastObjectVisualUpdate >= (mobileRef.current ? 40 : 0)) {
           objectRenderRef.current = { positions: nextObjects, facings: nextFacings };
           setObjectPositions(nextObjects);
           setObjectFacings(nextFacings);
+          lastObjectVisualUpdate = now;
         }
       }
 
@@ -591,6 +746,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   useEffect(
     () => () => {
       if (cursorIdleTimerRef.current) clearTimeout(cursorIdleTimerRef.current);
+      if (detailCloseTimerRef.current) clearTimeout(detailCloseTimerRef.current);
     },
     [],
   );
@@ -615,37 +771,49 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         role="group"
         onPointerDown={(event) => {
           event.stopPropagation();
-          event.currentTarget.setPointerCapture(event.pointerId);
           joystickRef.current.pointerId = event.pointerId;
-        }}
-        onPointerMove={(event) => {
-          if (joystickRef.current.pointerId !== event.pointerId) return;
-          const box = event.currentTarget.getBoundingClientRect();
-          const x = event.clientX - (box.left + box.width / 2);
-          const y = event.clientY - (box.top + box.height / 2);
-          const distance = Math.hypot(x, y) || 1;
-          const scale = Math.min(1, 42 / distance);
-          const knob = { x: x * scale, y: y * scale };
-          joystickRef.current.x = knob.x / 42;
-          joystickRef.current.y = knob.y / 42;
-          event.currentTarget.style.setProperty("--joystick-x", `${knob.x}px`);
-          event.currentTarget.style.setProperty("--joystick-y", `${knob.y}px`);
-        }}
-        onPointerUp={(event) => {
-          if (joystickRef.current.pointerId !== event.pointerId) return;
-          joystickRef.current = { x: 0, y: 0, pointerId: null };
-          event.currentTarget.style.setProperty("--joystick-x", "0px");
-          event.currentTarget.style.setProperty("--joystick-y", "0px");
-        }}
-        onPointerCancel={(event) => {
-          joystickRef.current = { x: 0, y: 0, pointerId: null };
-          event.currentTarget.style.setProperty("--joystick-x", "0px");
-          event.currentTarget.style.setProperty("--joystick-y", "0px");
-        }}
-        onLostPointerCapture={(event) => {
-          joystickRef.current = { x: 0, y: 0, pointerId: null };
-          event.currentTarget.style.setProperty("--joystick-x", "0px");
-          event.currentTarget.style.setProperty("--joystick-y", "0px");
+          const el = event.currentTarget;
+          const moveHandler = (moveEvent: PointerEvent) => {
+            if (joystickRef.current.pointerId !== moveEvent.pointerId) return;
+            const box = el.getBoundingClientRect();
+            const x = moveEvent.clientX - (box.left + box.width / 2);
+            const y = moveEvent.clientY - (box.top + box.height / 2);
+            // Extended radius: steering keeps working while the finger stays within 2.5x the knob travel.
+            const radius = box.width / 2;
+            const extendedRadius = radius * 2.5;
+            const distance = Math.hypot(x, y);
+            if (distance > extendedRadius) {
+              reset();
+              return;
+            }
+            const scale = Math.min(1, 42 / (distance || 1));
+            const knob = { x: x * scale, y: y * scale };
+            // Deadzone of 6px keeps the mermaid still for accidental micro-movements.
+            const deadzone = 6;
+            const magnitude = Math.hypot(knob.x, knob.y);
+            const response = magnitude > deadzone ? (magnitude - deadzone) / (42 - deadzone) : 0;
+            const factor = response / (magnitude || 1);
+            joystickRef.current.x = knob.x * factor;
+            joystickRef.current.y = knob.y * factor;
+            el.style.setProperty("--joystick-x", `${knob.x}px`);
+            el.style.setProperty("--joystick-y", `${knob.y}px`);
+          };
+          const reset = () => {
+            joystickRef.current.pointerId = null;
+            joystickRef.current.x = 0;
+            joystickRef.current.y = 0;
+            // Keep velocity: the render loop eases it to rest for a natural coast.
+            el.style.setProperty("--joystick-x", "0px");
+            el.style.setProperty("--joystick-y", "0px");
+            window.removeEventListener("pointermove", moveHandler);
+            window.removeEventListener("pointerup", upHandler);
+            window.removeEventListener("pointercancel", cancelHandler);
+          };
+          const upHandler = () => reset();
+          const cancelHandler = () => reset();
+          window.addEventListener("pointermove", moveHandler);
+          window.addEventListener("pointerup", upHandler);
+          window.addEventListener("pointercancel", cancelHandler);
         }}
       >
         <span className="mobile-joystick-knob" />
@@ -686,9 +854,17 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
           void enterMobileFullscreen();
         }
         if ((event.target as Element).closest("button")) return;
+        if (
+          window.matchMedia(MOBILE_MEDIA_QUERY).matches &&
+          activeIdRef.current &&
+          !(event.target as Element).closest(".bubble-message")
+        ) {
+          closeActiveDetail();
+        }
         draggingPointerRef.current = event.pointerId;
         event.currentTarget.setPointerCapture(event.pointerId);
-        moveTargetFromPointer(event);
+        // Only desktop pointer drags steer the mermaid; on mobile the joystick is the sole control.
+        if (event.pointerType === "mouse") moveTargetFromPointer(event);
       }}
       onPointerMove={(event) => {
         if (event.pointerType === "mouse") {
@@ -731,16 +907,6 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       {mobileControls}
       <span ref={cursorTrailRef} className="game-cursor-trail" aria-hidden="true" />
       <span ref={cursorRef} className="game-cursor-dot" aria-hidden="true" />
-      <audio
-        ref={bgmRef}
-        className="scene-bgm"
-        src="/bgm/underwater%20bgm.MP3"
-        autoPlay
-        loop
-        muted={bgmMuted}
-        preload="auto"
-        aria-hidden="true"
-      />
       <button
         type="button"
         className="scene-bgm-toggle scene-bgm-toggle-local"
@@ -750,13 +916,17 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       >
         {bgmMuted ? "Unmute music" : "Mute music"}
       </button>
-      <img
+      <video
         className="underwater-background mobile-underwater-background"
-        src="/images/underwater/background-mobile.webp"
-        alt=""
+        muted
+        loop
+        playsInline
+        preload="metadata"
         aria-hidden="true"
-        draggable={false}
-      />
+        tabIndex={-1}
+      >
+        <source media="(max-width: 1200px)" src="/images/underwater/background-mobile.mp4" type="video/mp4" />
+      </video>
       <video
         ref={backgroundRef}
         className="underwater-background desktop-underwater-background"
@@ -764,6 +934,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         loop
         playsInline
         preload="none"
+        poster="/images/underwater/underwater-poster.jpg"
         aria-hidden="true"
         tabIndex={-1}
       >
@@ -773,15 +944,28 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       <AmbientLayers />
 
       <header className="underwater-title-lockup">
-        <img
-          className="underwater-title-art"
-          src="/images/ui/liliana-underwater-title.png"
-          alt=""
-          aria-hidden="true"
-          draggable={false}
-        />
-        <h2 className="sr-only">Liliana’s First Birthday</h2>
+        <picture>
+          <source
+            media="(max-width: 1200px)"
+            srcSet="/images/mobile/liliana-underwater-title-mobile.webp"
+            type="image/webp"
+          />
+          <img
+            className="underwater-title-art"
+            src="/images/ui/liliana-underwater-title.png"
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+          />
+        </picture>
+        <h2 className="sr-only">Lilianna’s First Birthday</h2>
       </header>
+
+      <p className="discover-hint" data-hidden={hasDiscovered || undefined}>
+        <span className="hint-shimmer" aria-hidden="true" />
+        Tap or swim to a sea creature to discover its party detail
+        <span className="hint-shimmer" aria-hidden="true" />
+      </p>
 
       <div className="sea-object-layer">
         {interactiveObjects.map((object) => (
@@ -800,8 +984,8 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
 
       <MermaidCharacter
         facing={mermaidVisual.facing}
+        videoRef={mermaidVideoRef}
         width={mermaidVisual.width}
-        audioMuted={bgmMuted}
         x={mermaidVisual.x}
         y={mermaidVisual.y}
       />

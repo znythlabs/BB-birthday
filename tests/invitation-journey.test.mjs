@@ -81,7 +81,7 @@ test("underwater title keeps the compact verified artwork treatment", async () =
 
   assert.match(scene, /className="underwater-title-lockup"/);
   assert.match(scene, /liliana-underwater-title\.png/);
-  assert.match(scene, /<h2 className="sr-only">Liliana’s First Birthday<\/h2>/);
+  assert.match(scene, /<h2 className="sr-only">Lilianna’s First Birthday<\/h2>/);
   assert.match(scene, /data-transitioning=\{!sceneEntered \|\| undefined\}/);
   assert.match(scene, /new IntersectionObserver/);
   assert.match(scene, /backgroundRef/);

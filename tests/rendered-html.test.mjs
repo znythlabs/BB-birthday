@@ -84,7 +84,7 @@ test("keeps invitation content and WebM sea objects centralized", async () => {
     readFile(new URL("../README.md", import.meta.url), "utf8"),
   ]);
 
-  assert.match(eventConfig, /celebrantName:\s*"Liliana"/);
+  assert.match(eventConfig, /celebrantName:\s*"Lilianna"/);
   assert.match(scene, /requestAnimationFrame/);
   assert.match(scene, /prefers-reduced-motion/);
   assert.match(scene, /newunderwater\.mp4/);
@@ -123,7 +123,7 @@ test("uses WebM actors and exact projections without legacy cutouts", async () =
   assert.doesNotMatch(objectComponent, /renderSubject=/);
   assert.match(objects, /videoSrc/);
   assert.match(css, /\.sea-object-layer\s*\{[^}]*pointer-events:\s*none/);
-  assert.match(css, /\.sea-object-dedicated-shadow\s*\{[^}]*opacity:\s*0\.8[^}]*mix-blend-mode:\s*darken/);
+  assert.match(css, /\.sea-object-dedicated-shadow\s*\{[^}]*opacity:\s*0\.95[^}]*mix-blend-mode:\s*darken/);
   assert.doesNotMatch(css, /\.sea-object\s*\{[^}]*isolation:\s*isolate/);
   assert.match(css, /\.sea-object-video\s*\{[^}]*width:\s*100%/);
   assert.match(css, /\.sea-object-video\s*\{[^}]*height:\s*100%/);

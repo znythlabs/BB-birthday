@@ -29,6 +29,8 @@
 
 * { box-sizing: border-box; }
 html, body { width: 100%; min-height: 100%; margin: 0; }
+html.mobile-underwater-locked,
+body.mobile-underwater-locked { overflow: hidden; }
 
 body {
   overflow-x: hidden;
@@ -291,6 +293,10 @@ button { color: inherit; }
   visibility: hidden;
   pointer-events: none !important;
 }
+.underwater-scene[data-transitioning] > .discover-hint:not([data-hidden]) {
+  opacity: 1 !important;
+  visibility: visible;
+}
 
 @media (max-width: 1200px) and (hover: none), (max-width: 760px) {
   .underwater-scene[data-transitioning] > .mobile-joystick,
@@ -390,6 +396,38 @@ button { color: inherit; }
 .interaction-hint[data-hidden] { opacity: 0; transform: translate(-50%, 7px); }
 .hint-shimmer { width: 34px; height: 1px; background: linear-gradient(90deg, transparent, white, transparent); box-shadow: 0 0 9px white; animation: shimmer-line 1.9s ease-in-out infinite; }
 
+.discover-hint {
+  position: absolute;
+  z-index: 28;
+  top: 30%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  max-width: min(92vw, 560px);
+  transform: translateX(-50%);
+  color: rgba(255,255,255,0.97);
+  font-family: var(--font-body, "Segoe UI", system-ui, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-shadow: 0 2px 10px rgba(4, 70, 92, 0.7);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 500ms ease, transform 500ms ease;
+  animation: discover-hint-pulse 2.6s ease-in-out infinite;
+}
+.discover-hint[data-hidden] { opacity: 0; transform: translate(-50%, 7px); animation: none; }
+@keyframes discover-hint-pulse {
+  0%, 100% { opacity: 0.82; }
+  50% { opacity: 1; }
+}
+@media (max-width: 1200px) {
+  .discover-hint { top: 26%; font-size: 0.68rem; gap: 8px; max-width: min(88vw, 420px); }
+  .discover-hint .hint-shimmer { width: 22px; }
+}
+
 .background-fish-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .background-fish-group { position: absolute; left: 0; top: 0; width: clamp(64px, 9vw, 120px); will-change: transform; }
 .background-fish-group video { display: block; width: 100%; height: auto; }
@@ -443,7 +481,7 @@ button { color: inherit; }
   width: 100%;
   height: 100%;
   object-fit: contain;
-  opacity: 0.8;
+  opacity: 0.95;
   mix-blend-mode: darken;
   pointer-events: none;
 }
@@ -574,7 +612,7 @@ button { color: inherit; }
 .bubble-anchor-below { transform-origin: center top; }
 .bubble-kicker { position: relative; margin: 0 0 4px; padding-left: 13px; color: #16778c; font-size: 0.58rem; font-weight: 900; letter-spacing: 0.13em; text-transform: uppercase; }
 .bubble-kicker::before { content: ""; position: absolute; left: 0; top: 50%; width: 7px; height: 7px; transform: translateY(-50%); border-radius: 50%; background: radial-gradient(circle at 30% 25%, white, #ffccd9 62%, #a7dedf); }
-.bubble-value { position: relative; margin: 0; max-width: 220px; color: var(--ocean-ink); font-family: Georgia, "Times New Roman", serif; font-size: 0.95rem; font-weight: 700; line-height: 1.2; }
+.bubble-value { position: relative; margin: 0; max-width: 220px; color: var(--ocean-ink); font-family: var(--font-body, "Segoe UI", system-ui, sans-serif); font-size: 0.86rem; font-weight: 650; line-height: 1.25; }
 .bubble-close, .details-dialog-close {
   display: grid;
   place-items: center;
@@ -660,7 +698,7 @@ button { color: inherit; }
 .details-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0 0; }
 .details-list-item { display: grid; grid-template-columns: 54px 1fr; gap: 13px; align-items: center; min-height: 92px; padding: 14px; border: 1px solid rgba(7,93,117,0.13); border-radius: 16px; background: white; box-shadow: 0 7px 20px rgba(4,63,79,0.07); }
 .details-list-art { display: grid; place-items: center; width: 54px; height: 54px; overflow: hidden; border-radius: 43% 57% 48% 52%; background: radial-gradient(circle, rgba(255,255,255,0.86), rgba(189,247,244,0.28)); }
-.details-list-video { display: block; width: 76px; aspect-ratio: 16 / 9; object-fit: contain; transform: scale(1.35); }
+.details-list-art-img { display: block; width: 76px; aspect-ratio: 16 / 9; object-fit: contain; transform: scale(1.35); }
 .details-list dt { color: #168097; font-size: 0.67rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
 .details-list dd { margin: 2px 0 0; color: var(--ocean-ink); font-size: 0.94rem; font-weight: 760; line-height: 1.28; }
 
@@ -690,8 +728,18 @@ button { color: inherit; }
 @media (max-width: 1200px) {
   .desktop-underwater-background { display: none; }
   .mobile-underwater-background { display: block; }
+  .background-fish-group--desktop-only { display: none; }
+  .sea-object-dedicated-shadow { opacity: 0.4; }
+  .sea-object-fish-courier::before {
+    content: "";
+    position: absolute;
+    z-index: 6;
+    inset: -28%;
+    border-radius: 50%;
+  }
   .game-cursor-dot, .game-cursor-trail { display: none; }
   .underwater-scene { min-height: 0; }
+  .welcome-dive-pin { min-height: 0; }
   .underwater-scene[data-transitioning] > .mobile-joystick,
   .underwater-scene[data-transitioning] > .mobile-fullscreen-button,
   .underwater-scene[data-transitioning] > .rotate-device-prompt {
@@ -760,21 +808,74 @@ button { color: inherit; }
     font-weight: 850;
     backdrop-filter: blur(8px);
   }
-  .mobile-joystick-knob { width: 48px; height: 48px; border: 2px solid white; border-radius: 50%; background: radial-gradient(circle at 35% 28%, white, #a7e7e8 65%, #479db0); box-shadow: 0 5px 15px rgba(1,42,59,0.38); pointer-events: none; }
-  .underwater-scene { touch-action: none; }
+  .mobile-joystick-knob { width: 48px; height: 48px; border: 2px solid white; border-radius: 50%; background: radial-gradient(circle at 35% 28%, white, #a7e7e8 65%, #479db0); box-shadow: 0 5px 15px rgba(1,42,59,0.38); pointer-events: none; transition: transform 90ms ease-out; transform: translate3d(var(--joystick-x, 0px), var(--joystick-y, 0px), 0); }
+  .underwater-scene[data-transitioning] { pointer-events: none; }
+  .underwater-scene:not([data-transitioning]) { touch-action: none; }
   .underwater-background { object-position: center bottom; }
+  .mobile-underwater-background { object-position: center; }
+  .global-audio-toggle {
+    left: max(16px, env(safe-area-inset-left));
+    right: auto;
+  }
   .underwater-title-lockup {
     top: max(4px, env(safe-area-inset-top));
-    width: clamp(110px, 30vw, 170px);
+    width: clamp(150px, 44vw, 260px);
   }
   .interaction-hint { top: 22%; width: max-content; max-width: 86vw; font-size: 0.66rem; }
-  .sea-object { --object-scale: 0.72; }
-  .bubble-message { width: min(280px, calc(100% - 24px)); }
-  .bubble-message-card { min-height: 88px; }
-  .all-details-button { right: 50%; bottom: max(12px, env(safe-area-inset-bottom)); transform: translateX(50%); }
-  .all-details-button:hover { transform: translate(50%, -2px); }
+  .sea-object { --object-scale: 0.58; }
+  .bubble-message { width: auto !important; max-width: min(168px, calc(100% - 24px)) !important; }
+  .bubble-message-card { min-height: 56px; padding: 8px 26px 8px 12px; border-radius: 13px; }
+  .bubble-value { font-size: 0.72rem; max-width: 132px; }
+  .bubble-kicker { font-size: 0.5rem; }
+  .bubble-close { width: 24px; height: 24px; font-size: 0.9rem; top: 6px; right: 6px; }
+  .all-details-button { right: max(12px, env(safe-area-inset-right)); bottom: max(12px, env(safe-area-inset-bottom)); transform: none; }
+  .all-details-button:hover { transform: translateY(-2px); }
   .details-dialog { padding: 20px; border-radius: 27px; }
   .details-list { grid-template-columns: 1fr; }
+  .details-backdrop { padding: 10px; }
+  .details-dialog { max-height: calc(100svh - 20px); padding: 14px; border-radius: 20px; width: min(440px, 100%); }
+  .details-dialog-heading { gap: 12px; }
+  .details-dialog h2 { font-size: 1.35rem; }
+  .details-dialog-intro { font-size: 0.78rem; margin-top: 5px; }
+  .details-list { gap: 8px; margin: 12px 0 0; }
+  .details-list-item { grid-template-columns: 40px 1fr; gap: 10px; min-height: 58px; padding: 8px 11px; border-radius: 12px; }
+  .details-list-art { width: 40px; height: 40px; }
+  .details-list-art-img { width: 56px; transform: scale(1.25); }
+  /* When the party-details panel is open, hide the overlay controls so they don't cover it. */
+  body.underwater-dialog-open .global-audio-toggle { display: none !important; }
+  .underwater-scene[data-dialog-open] > .mobile-joystick,
+  .underwater-scene[data-dialog-open] > .mobile-fullscreen-button,
+  .underwater-scene[data-dialog-open] > .rotate-device-prompt { display: none !important; }
+  .details-list dt { font-size: 0.58rem; }
+  .details-list dd { font-size: 0.82rem; }
+
+  .welcome-scroll-cue {
+    left: auto;
+    right: max(14px, env(safe-area-inset-right));
+    bottom: 50%;
+    transform: translateY(50%);
+    gap: 8px;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+  }
+  .welcome-scroll-cue::before {
+    content: "";
+    width: 1px;
+    height: 26px;
+    background: linear-gradient(180deg, transparent, rgba(255,255,255,0.9));
+  }
+  .welcome-scroll-cue i {
+    width: 9px;
+    height: 9px;
+    background: transparent;
+    border-right: 2px solid rgba(255,255,255,0.95);
+    border-bottom: 2px solid rgba(255,255,255,0.95);
+    animation: mobile-scroll-arrow 1.6s ease-in-out infinite;
+  }
+  @keyframes mobile-scroll-arrow {
+    0%, 100% { transform: translate(0, 0) rotate(45deg); opacity: 0.6; }
+    50% { transform: translate(0, 4px) rotate(45deg); opacity: 1; }
+  }
 }
 
 @media (max-width: 1200px) and (orientation: portrait) {
@@ -787,15 +888,17 @@ button { color: inherit; }
 }
 
 @media (max-width: 1200px) {
-  .underwater-scene:fullscreen .rotate-device-prompt { display: none; }
+  .underwater-scene:fullscreen .rotate-device-prompt,
+  .welcome-dive-pin[data-underwater-committed] .rotate-device-prompt { display: none; }
   .underwater-scene:fullscreen .mobile-joystick,
-  .underwater-scene:fullscreen .mobile-fullscreen-button { display: grid; }
+  .underwater-scene:fullscreen .mobile-fullscreen-button,
+  .welcome-dive-pin[data-underwater-committed] .mobile-joystick { display: grid; }
 }
 
 @media (max-height: 650px) and (orientation: landscape) {
-  .underwater-title-lockup { top: 2px; width: 140px; }
+  .underwater-title-lockup { top: 2px; width: 190px; }
   .interaction-hint { top: 22%; }
-  .sea-object { --object-scale: 0.68; }
+  .sea-object { --object-scale: 0.54; }
   .all-details-button { bottom: 10px; }
 }
 

@@ -6,7 +6,7 @@ import type { InteractiveSeaObjectData } from "@/data/seaObjects";
 
 type Point = { x: number; y: number };
 
-const MOBILE_VIDEO_PATHS: Partial<Record<string, string>> = {
+const OBJECT_VIDEO_PATHS: Partial<Record<string, string>> = {
   "pearl-shell": "/images/mobile/pearl-transparent-mobile.webm",
   "fish-courier": "/images/mobile/fish-transparent-mobile.webm",
   "sea-turtle": "/images/mobile/turtle-transparent-mobile.webm",
@@ -14,17 +14,15 @@ const MOBILE_VIDEO_PATHS: Partial<Record<string, string>> = {
   jellyfish: "/images/mobile/jellyfish-transparent-mobile.webm",
   crab: "/images/mobile/crab-transparent-mobile.webm",
 };
-
-const MOBILE_SHADOW_PATHS: Partial<Record<string, string>> = {
-  "pearl-shell": "/images/mobile/pearl_shadow-mobile.webp",
-  "treasure-chest": "/images/mobile/chest_shadow-mobile.webp",
-  crab: "/images/mobile/crab_shadow-mobile.webp",
-};
-
 const OBJECT_SHADOW_PATHS: Partial<Record<string, string>> = {
   "pearl-shell": "/images/underwater-v2/interactives/shadows/pearl_shadow.png",
   "treasure-chest": "/images/underwater-v2/interactives/shadows/chest_shadow.png",
   crab: "/images/underwater-v2/interactives/shadows/crab_shadow.png",
+};
+const MOBILE_SHADOW_PATHS: Partial<Record<string, string>> = {
+  "pearl-shell": "/images/mobile/pearl_shadow-mobile.webp",
+  "treasure-chest": "/images/mobile/chest_shadow-mobile.webp",
+  crab: "/images/mobile/crab_shadow-mobile.webp",
 };
 
 type Props = {
@@ -35,6 +33,7 @@ type Props = {
   position?: Point;
   facing?: 1 | -1;
   onActivate: (object: InteractiveSeaObjectData) => void;
+  elementRef?: (element: HTMLButtonElement | null) => void;
 };
 
 export function InteractiveSeaObject({
@@ -45,9 +44,10 @@ export function InteractiveSeaObject({
   position,
   facing = 1,
   onActivate,
+  elementRef,
 }: Props) {
   const videoSrc = object.videoSrc;
-  const mobileVideoSrc = MOBILE_VIDEO_PATHS[object.kind];
+  const mobileVideoSrc = OBJECT_VIDEO_PATHS[object.kind];
   const shadowSrc = OBJECT_SHADOW_PATHS[object.kind];
   const mobileShadowSrc = MOBILE_SHADOW_PATHS[object.kind];
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
@@ -65,16 +65,9 @@ export function InteractiveSeaObject({
         : Math.min(globalY, sceneHeight - 6 - object.width * 0.58 * 0.5625)
       : globalY;
   const visualFacing = object.kind === "pearl-shell" ? -1 : facing;
-  // Keep grounded chest/crab fully inside the scene on desktop too — the
-  // element overflows downward (negative margin-top), so clamp the top so the
-  // visual bottom edge never crosses the scene bottom and gets clipped.
-  const desktopTop =
-    !isMobile && sceneHeight && isGroundedChestCrab
-      ? Math.min(globalY, sceneHeight - 2 - object.width * 0.28125)
-      : globalY;
   const style = {
     left: isMobile ? 0 : sceneWidth ? `${(globalX / sceneWidth) * 100}%` : `${object.x}%`,
-    top: isMobile ? 0 : sceneHeight ? `${(desktopTop / sceneHeight) * 100}%` : `${object.y}%`,
+    top: isMobile ? 0 : sceneHeight ? `${(globalY / sceneHeight) * 100}%` : `${object.y}%`,
     ...(isMobile ? { transform: `translate3d(${globalX}px, ${mobileY}px, 0)` } : {}),
     "--object-width": `${object.width}px`,
   } as CSSProperties;
@@ -105,12 +98,16 @@ export function InteractiveSeaObject({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    if (reducedMotion) video.pause();
-    else void video.play().catch(() => undefined);
-  }, [reducedMotion]);
+    if (reducedMotion || isMobile === null || document.hidden) {
+      video.pause();
+    } else {
+      void video.play().catch(() => undefined);
+    }
+  }, [active, isMobile, reducedMotion]);
 
   return (
     <button
+      ref={elementRef}
       type="button"
       className={`sea-object sea-object-${object.kind}`}
       style={style}
@@ -140,7 +137,7 @@ export function InteractiveSeaObject({
             ref={videoRef}
             className="sea-object-video"
             style={{ transform: `scaleX(${visualFacing})` }}
-            autoPlay={!reducedMotion}
+            autoPlay={!reducedMotion && isMobile !== null}
             muted
             loop
             playsInline
@@ -148,11 +145,15 @@ export function InteractiveSeaObject({
             tabIndex={-1}
             aria-hidden="true"
             onLoadedData={(event) => {
-              if (reducedMotion) event.currentTarget.pause();
+              if (reducedMotion || isMobile === null) event.currentTarget.pause();
             }}
           >
             {mobileVideoSrc ? (
-              <source media="(max-width: 1200px)" src={mobileVideoSrc} type="video/webm" />
+              <source
+                media="(max-width: 1200px)"
+                src={mobileVideoSrc}
+                type="video/webm"
+              />
             ) : null}
             <source src={videoSrc} type="video/webm" />
           </video>

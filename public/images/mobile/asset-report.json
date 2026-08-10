@@ -1,0 +1,110 @@
+{
+  "generatedAt": "2026-08-09T03:51:06.508Z",
+  "notes": [
+    "Transparent VP9 outputs decoded with libvpx-vp9 and verified alpha range 0..255.",
+    "Mobile transition is 1280x720, 30 fps, all-I-frame H.264 for responsive scroll seeking.",
+    "Mobile background uses existing 208494-byte background-mobile.webp; underwater desktop video stays unrequested at <=1200px.",
+    "Second decorative fish school remains desktop-only on mobile to halve concurrent background-fish decoders."
+  ],
+  "sourceTotalBytes": 139160943,
+  "mobileTotalBytes": 17248936,
+  "reductionPercent": 87.6,
+  "assets": [
+    {
+      "asset": "island-mobile.mp4",
+      "before": 48214080,
+      "after": 1688729,
+      "savedPct": 96.5
+    },
+    {
+      "asset": "transition-scrub-mobile.mp4",
+      "before": 49511369,
+      "after": 7806019,
+      "savedPct": 84.2
+    },
+    {
+      "asset": "mermaid-transparent-mobile.webm",
+      "before": 8677430,
+      "after": 1453667,
+      "savedPct": 83.2
+    },
+    {
+      "asset": "pearl-transparent-mobile.webm",
+      "before": 2084840,
+      "after": 401899,
+      "savedPct": 80.7
+    },
+    {
+      "asset": "fish-transparent-mobile.webm",
+      "before": 4344639,
+      "after": 745379,
+      "savedPct": 82.8
+    },
+    {
+      "asset": "turtle-transparent-mobile.webm",
+      "before": 4800205,
+      "after": 973037,
+      "savedPct": 79.7
+    },
+    {
+      "asset": "chest-transparent-mobile.webm",
+      "before": 4408287,
+      "after": 488353,
+      "savedPct": 88.9
+    },
+    {
+      "asset": "jellyfish-transparent-mobile.webm",
+      "before": 6172686,
+      "after": 1528909,
+      "savedPct": 75.2
+    },
+    {
+      "asset": "crab-transparent-mobile.webm",
+      "before": 7066080,
+      "after": 1493258,
+      "savedPct": 78.9
+    },
+    {
+      "asset": "smallfish1-transparent-mobile.webm",
+      "before": 371829,
+      "after": 109255,
+      "savedPct": 70.6
+    },
+    {
+      "asset": "smallfish2-transparent-mobile.webm",
+      "before": 337384,
+      "after": 77054,
+      "savedPct": 77.2
+    },
+    {
+      "asset": "smallfish3-transparent-mobile.webm",
+      "before": 364087,
+      "after": 79337,
+      "savedPct": 78.2
+    },
+    {
+      "asset": "liliana-underwater-title-mobile.webp",
+      "before": 896893,
+      "after": 48150,
+      "savedPct": 94.6
+    },
+    {
+      "asset": "pearl_shadow-mobile.webp",
+      "before": 634596,
+      "after": 83386,
+      "savedPct": 86.9
+    },
+    {
+      "asset": "chest_shadow-mobile.webp",
+      "before": 600418,
+      "after": 177402,
+      "savedPct": 70.5
+    },
+    {
+      "asset": "crab_shadow-mobile.webp",
+      "before": 676120,
+      "after": 95102,
+      "savedPct": 85.9
+    }
+  ]
+}
