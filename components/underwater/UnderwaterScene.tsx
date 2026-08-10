@@ -52,6 +52,7 @@ import { MermaidCharacter } from "./MermaidCharacter";
 import { PartyDetailsDialog } from "./PartyDetailsDialog";
 import {
   enterMobileFullscreen as requestMobileFullscreen,
+  isIos,
   isMobileFullscreen,
   toggleMobileFullscreen,
 } from "@/lib/mobileFullscreen";
@@ -99,6 +100,7 @@ export function UnderwaterScene({ active, adventureStarted }: { active?: boolean
     velocity: { x: 0, y: 0 },
   });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isIosDevice, setIsIosDevice] = useState(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const jellyfishTargetRef = useRef<Point | null>(null);
   const objectPositionsRef = useRef<ObjectPositions>({});
@@ -171,9 +173,18 @@ export function UnderwaterScene({ active, adventureStarted }: { active?: boolean
   }, []);
 
   useEffect(() => {
+    setIsIosDevice(isIos());
+  }, []);
+
+  useEffect(() => {
     const syncFullscreenState = () => setIsFullscreen(isMobileFullscreen());
     document.addEventListener("fullscreenchange", syncFullscreenState);
-    return () => document.removeEventListener("fullscreenchange", syncFullscreenState);
+    // iOS Safari fires webkitfullscreenchange (video fullscreen) instead.
+    document.addEventListener("webkitfullscreenchange", syncFullscreenState);
+    return () => {
+      document.removeEventListener("fullscreenchange", syncFullscreenState);
+      document.removeEventListener("webkitfullscreenchange", syncFullscreenState);
+    };
   }, []);
 
   useEffect(() => {
@@ -844,7 +855,7 @@ export function UnderwaterScene({ active, adventureStarted }: { active?: boolean
     <>
     <section
       ref={sceneRef}
-      className="underwater-scene"
+      className={isIosDevice ? "underwater-scene ios-device" : "underwater-scene"}
       data-transitioning={!sceneEntered || undefined}
       data-dialog-open={showAllDetails || undefined}
       onPointerDown={(event) => {

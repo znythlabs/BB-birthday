@@ -503,6 +503,18 @@ button { color: inherit; }
   object-fit: contain;
 }
 
+/* iOS Safari renders the baked-in black of these WebMs as opaque boxes
+   (Android's VP9 decoder lifts near-black to translucent, iOS does not).
+   Screen blending makes black transparent while keeping the bright objects
+   visible. Scoped to iOS so Android/desktop rendering is untouched. */
+.underwater-scene.ios-device .sea-object-video {
+  mix-blend-mode: screen;
+}
+
+.underwater-scene.ios-device .sea-object-dedicated-shadow {
+  mix-blend-mode: darken;
+}
+
 .sea-object::after {
   content: "";
   position: absolute;
