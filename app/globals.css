@@ -811,7 +811,7 @@ button { color: inherit; }
     z-index: -1;
     pointer-events: none;
   }
-  .rotate-device-icon { font-size: 3.2rem; line-height: 1; animation: rotate-prompt 1.8s ease-in-out infinite; }
+  .rotate-device-icon { font-size: 4.2rem; line-height: 1; animation: rotate-prompt 1.8s ease-in-out infinite; }
   .rotate-device-prompt strong,
   .welcome-rotate-prompt strong { font-family: Georgia, serif; font-size: 1.55rem; }
   .rotate-device-prompt span,
