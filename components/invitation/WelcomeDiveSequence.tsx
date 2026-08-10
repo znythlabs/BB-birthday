@@ -31,6 +31,14 @@ export function WelcomeDiveSequence({
   const [needsManualRotation, setNeedsManualRotation] = useState(false);
   const committedRef = useRef(false);
 
+  // iPhone Safari/Chrome cannot auto-enter fullscreen or lock orientation, so
+  // the rotate prompt should greet iPhone users immediately on load (portrait).
+  useEffect(() => {
+    if (window.matchMedia("(max-width: 1200px)").matches && isIphoneLike()) {
+      setNeedsManualRotation(true);
+    }
+  }, []);
+
   useEffect(() => {
     const video = transitionRef.current;
     if (!video) return;
