@@ -54,6 +54,7 @@ import {
   enterMobileFullscreen as requestMobileFullscreen,
   isIphoneLike,
   isMobileFullscreen,
+  isStandaloneWebApp,
   toggleMobileFullscreen,
 } from "@/lib/mobileFullscreen";
 
@@ -100,7 +101,9 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
     velocity: { x: 0, y: 0 },
   });
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isIphoneDevice, setIsIphoneDevice] = useState(false);
+  const [isIphoneDevice, setIsIphoneDevice] = useState<boolean | null>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
+  const [showIosInstallHelp, setShowIosInstallHelp] = useState(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const jellyfishTargetRef = useRef<Point | null>(null);
   const objectPositionsRef = useRef<ObjectPositions>({});
@@ -173,7 +176,17 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   }, []);
 
   useEffect(() => {
-    setIsIphoneDevice(isIphoneLike());
+    const standaloneQuery = window.matchMedia("(display-mode: standalone)");
+    const syncStandalone = () => setIsStandalone(isStandaloneWebApp());
+    const platformFrame = requestAnimationFrame(() => {
+      setIsIphoneDevice(isIphoneLike());
+      syncStandalone();
+    });
+    standaloneQuery.addEventListener("change", syncStandalone);
+    return () => {
+      cancelAnimationFrame(platformFrame);
+      standaloneQuery.removeEventListener("change", syncStandalone);
+    };
   }, []);
 
   useEffect(() => {
@@ -825,7 +838,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         <span className="mobile-joystick-knob" />
       </div>
 
-      {!isIphoneDevice ? (
+      {isIphoneDevice === false ? (
         <button
           type="button"
           className="mobile-fullscreen-button"
@@ -834,6 +847,16 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         >
           <span aria-hidden="true">⛶</span>
           <span>{isFullscreen ? "Exit" : "Fullscreen"}</span>
+        </button>
+      ) : isIphoneDevice === true && !isStandalone ? (
+        <button
+          type="button"
+          className="mobile-fullscreen-button ios-app-mode-button"
+          onClick={() => setShowIosInstallHelp(true)}
+          aria-label="Open instructions for app-like fullscreen on iPhone"
+        >
+          <span aria-hidden="true">⛶</span>
+          <span>Full screen</span>
         </button>
       ) : null}
 
@@ -853,6 +876,35 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
           ) : null}
         </div>
       ) : null}
+
+      {showIosInstallHelp ? (
+        <div
+          className="ios-install-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="ios-install-title"
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <div className="ios-install-card">
+            <button
+              type="button"
+              className="ios-install-close"
+              aria-label="Close full-screen instructions"
+              onClick={() => setShowIosInstallHelp(false)}
+            >
+              ×
+            </button>
+            <p>iPhone app mode</p>
+            <h3 id="ios-install-title">Open without Safari controls</h3>
+            <ol>
+              <li>Tap the Share button in your browser.</li>
+              <li>Choose <strong>Add to Home Screen</strong>.</li>
+              <li>Open Lilianna from the new Home Screen icon.</li>
+            </ol>
+            <span>The invitation will launch as a standalone landscape web app.</span>
+          </div>
+        </div>
+      ) : null}
     </>
   );
 
@@ -862,11 +914,15 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       ref={sceneRef}
       className="underwater-scene"
       data-transitioning={!sceneEntered || undefined}
-      data-dialog-open={showAllDetails || undefined}
+      data-dialog-open={showAllDetails || showIosInstallHelp || undefined}
       onPointerDown={(event) => {
-        if (showAllDetails) return;
+        if (showAllDetails || showIosInstallHelp) return;
         startBgm();
-        if (window.matchMedia(MOBILE_MEDIA_QUERY).matches && !document.fullscreenElement) {
+        if (
+          isIphoneDevice === false &&
+          window.matchMedia(MOBILE_MEDIA_QUERY).matches &&
+          !document.fullscreenElement
+        ) {
           void enterMobileFullscreen();
         }
         if ((event.target as Element).closest("button")) return;
@@ -1000,7 +1056,9 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
 
       <MermaidCharacter
         facing={mermaidVisual.facing}
-        videoRef={mermaidVideoRef}
+        onVideoElement={(element) => {
+          mermaidVideoRef.current = element;
+        }}
         width={mermaidVisual.width}
         x={mermaidVisual.x}
         y={mermaidVisual.y}

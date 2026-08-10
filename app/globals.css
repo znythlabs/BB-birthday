@@ -301,7 +301,8 @@ button { color: inherit; }
 @media (max-width: 1200px) and (hover: none), (max-width: 760px) {
   .underwater-scene[data-transitioning] > .mobile-joystick,
   .underwater-scene[data-transitioning] > .mobile-fullscreen-button,
-  .underwater-scene[data-transitioning] > .rotate-device-prompt {
+  .underwater-scene[data-transitioning] > .rotate-device-prompt,
+  .underwater-scene[data-transitioning] > .ios-install-backdrop {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
@@ -430,7 +431,8 @@ button { color: inherit; }
 
 .background-fish-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .background-fish-group { position: absolute; left: 0; top: 0; width: clamp(64px, 9vw, 120px); will-change: transform; }
-.background-fish-group video, .background-fish-group img { display: block; width: 100%; height: auto; }
+.background-fish-group video,
+.background-fish-group img { display: block; width: 100%; height: auto; }
 
 .sea-object-layer { position: absolute; inset: 0; pointer-events: none; }
 .underwater-scene, .underwater-scene * { cursor: none !important; }
@@ -734,11 +736,9 @@ button { color: inherit; }
   will-change: transform;
 }
 
-/* iOS cannot render the baked-black WebM as transparent, so it shows a keyed
-   transparent poster on top; the video stays playing (opacity 0) underneath so
-   the laugh audio keeps its currentTime sync clock. The wrapper spans the full
-   scene so the video/poster position themselves relative to the scene exactly
-   as they did when they were direct children. */
+/* The wrapper spans the full scene so the mermaid video/poster position
+   themselves relative to the scene exactly as they did when they were
+   direct children. */
 .mermaid-character {
   position: absolute;
   left: 0;
@@ -748,15 +748,19 @@ button { color: inherit; }
   z-index: 24;
   pointer-events: none;
 }
-.mermaid-character .mermaid-video,
-.mermaid-character .mermaid-ios-poster {
+.mermaid-character .mermaid-video {
   position: absolute;
 }
-.mermaid-ios-poster {
-  z-index: 2;
-  filter: none;
+.mermaid-timeline-video {
+  position: absolute;
+  z-index: -20;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  opacity: 0;
+  pointer-events: none;
 }
-.mermaid-character.ios-keyed .mermaid-video { opacity: 0; }
 
 @media (max-width: 1200px) {
   .desktop-underwater-background { display: none; }
@@ -771,11 +775,12 @@ button { color: inherit; }
     border-radius: 50%;
   }
   .game-cursor-dot, .game-cursor-trail { display: none; }
-  .underwater-scene { min-height: 0; }
-  .welcome-dive-pin { min-height: 0; }
+  .underwater-scene { min-height: 0; height: 100dvh; }
+  .welcome-dive-pin { min-height: 0; height: 100dvh; }
   .underwater-scene[data-transitioning] > .mobile-joystick,
   .underwater-scene[data-transitioning] > .mobile-fullscreen-button,
-  .underwater-scene[data-transitioning] > .rotate-device-prompt {
+  .underwater-scene[data-transitioning] > .rotate-device-prompt,
+  .underwater-scene[data-transitioning] > .ios-install-backdrop {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
@@ -861,6 +866,34 @@ button { color: inherit; }
     font-weight: 850;
     backdrop-filter: blur(8px);
   }
+  .ios-install-backdrop {
+    position: fixed;
+    z-index: 220;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: max(18px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(18px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+    background: rgba(1, 27, 42, 0.76);
+    pointer-events: auto;
+    touch-action: manipulation;
+    backdrop-filter: blur(12px);
+  }
+  .ios-install-card {
+    position: relative;
+    width: min(420px, 92vw);
+    padding: 24px 24px 22px;
+    border: 1px solid rgba(255,255,255,0.86);
+    border-radius: 22px;
+    background: #fffaf6;
+    box-shadow: 0 24px 70px rgba(0,24,38,0.48);
+    color: var(--ocean-ink);
+    text-align: left;
+  }
+  .ios-install-card p { margin: 0 0 5px; color: #168097; font-size: 0.65rem; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; }
+  .ios-install-card h3 { margin: 0; padding-right: 32px; font-family: Georgia, serif; font-size: 1.35rem; line-height: 1.08; }
+  .ios-install-card ol { margin: 16px 0 14px; padding-left: 21px; font-size: 0.82rem; font-weight: 700; line-height: 1.5; }
+  .ios-install-card > span { display: block; color: #52717c; font-size: 0.72rem; line-height: 1.4; }
+  .ios-install-close { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: rgba(7,93,117,0.1); color: var(--ocean-ink); font-size: 1.35rem; }
   .mobile-joystick-knob { width: 48px; height: 48px; border: 2px solid white; border-radius: 50%; background: radial-gradient(circle at 35% 28%, white, #a7e7e8 65%, #479db0); box-shadow: 0 5px 15px rgba(1,42,59,0.38); pointer-events: none; transition: transform 90ms ease-out; transform: translate3d(var(--joystick-x, 0px), var(--joystick-y, 0px), 0); }
   .underwater-scene[data-transitioning] { pointer-events: none; }
   .underwater-scene:not([data-transitioning]) { touch-action: none; }

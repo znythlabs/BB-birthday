@@ -152,8 +152,8 @@ test("gates scene dragging and allows vertical modal touch scrolling", async () 
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
 
-  assert.match(scene, /data-dialog-open=\{showAllDetails \|\| undefined\}/);
-  assert.match(scene, /onPointerDown=\{\(event\) => \{\s*if \(showAllDetails\) return;/);
+  assert.match(scene, /data-dialog-open=\{showAllDetails \|\| showIosInstallHelp \|\| undefined\}/);
+  assert.match(scene, /onPointerDown=\{\(event\) => \{\s*if \(showAllDetails \|\| showIosInstallHelp\) return;/);
   assert.match(scene, /onPointerMove=/);
   assert.match(scene, /releasePointerCapture\(activePointerId\)/);
   assert.match(css, /\.underwater-scene\[data-dialog-open\]\s*\{[^}]*touch-action:\s*pan-y/s);

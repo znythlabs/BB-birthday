@@ -16,6 +16,24 @@ const MOBILE_VIDEO_PATHS: Partial<Record<string, string>> = {
   crab: "/images/mobile/crab-transparent-mobile.webm",
 };
 
+const IOS_ANIMATED_WEBP_PATHS: Partial<Record<string, string>> = {
+  "pearl-shell": "/images/mobile/pearl-transparent-ios.webp",
+  "fish-courier": "/images/mobile/fish-transparent-ios.webp",
+  "sea-turtle": "/images/mobile/turtle-transparent-ios.webp",
+  "treasure-chest": "/images/mobile/chest-transparent-ios.webp",
+  jellyfish: "/images/mobile/jellyfish-transparent-ios.webp",
+  crab: "/images/mobile/crab-transparent-ios.webp",
+};
+
+const IOS_HEVC_ALPHA_PATHS: Partial<Record<string, string>> = {
+  "pearl-shell": "/images/mobile/hevc/pearl-transparent-ios.mov",
+  "fish-courier": "/images/mobile/hevc/fish-transparent-ios.mov",
+  "sea-turtle": "/images/mobile/hevc/turtle-transparent-ios.mov",
+  "treasure-chest": "/images/mobile/hevc/chest-transparent-ios.mov",
+  jellyfish: "/images/mobile/hevc/jellyfish-transparent-ios.mov",
+  crab: "/images/mobile/hevc/crab-transparent-ios.mov",
+};
+
 const MOBILE_SHADOW_PATHS: Partial<Record<string, string>> = {
   "pearl-shell": "/images/mobile/pearl_shadow-mobile.webp",
   "treasure-chest": "/images/mobile/chest_shadow-mobile.webp",
@@ -49,10 +67,13 @@ export function InteractiveSeaObject({
 }: Props) {
   const videoSrc = object.videoSrc;
   const mobileVideoSrc = MOBILE_VIDEO_PATHS[object.kind];
+  const iosAnimatedWebpSrc = IOS_ANIMATED_WEBP_PATHS[object.kind];
+  const iosHevcCandidate = IOS_HEVC_ALPHA_PATHS[object.kind];
   const shadowSrc = OBJECT_SHADOW_PATHS[object.kind];
   const mobileShadowSrc = MOBILE_SHADOW_PATHS[object.kind];
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
-  const [useIosPoster, setUseIosPoster] = useState<boolean>(false);
+  const [isIosDevice, setIsIosDevice] = useState<boolean | null>(null);
+  const [iosHevcSrc, setIosHevcSrc] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const globalX = position?.x ?? (object.x / 100) * sceneWidth;
@@ -82,13 +103,35 @@ export function InteractiveSeaObject({
   } as CSSProperties;
 
   useEffect(() => {
-    setUseIosPoster(isIos());
+    const iosFrame = requestAnimationFrame(() => setIsIosDevice(isIos()));
     const query = window.matchMedia("(max-width: 1200px)");
     const sync = () => setIsMobile(query.matches);
     sync();
     query.addEventListener("change", sync);
-    return () => query.removeEventListener("change", sync);
+    return () => {
+      cancelAnimationFrame(iosFrame);
+      query.removeEventListener("change", sync);
+    };
   }, []);
+
+  useEffect(() => {
+    if (!isIosDevice || !iosHevcCandidate) return;
+    const probe = document.createElement("video");
+    const canPlayHevc =
+      probe.canPlayType('video/mp4; codecs="hvc1"') ||
+      probe.canPlayType('video/quicktime; codecs="hvc1"');
+    if (!canPlayHevc) return;
+
+    let cancelled = false;
+    void fetch(iosHevcCandidate, { method: "HEAD", cache: "force-cache" })
+      .then((response) => {
+        if (!cancelled && response.ok) setIosHevcSrc(iosHevcCandidate);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [iosHevcCandidate, isIosDevice]);
 
   useEffect(() => {
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -139,15 +182,41 @@ export function InteractiveSeaObject({
       ) : null}
       {videoSrc ? (
         <span className="sea-object-media">
-          {useIosPoster === true ? (
+          {isIosDevice === null ? (
             <img
-              className="sea-object-video sea-object-ios-poster"
+              className="sea-object-video sea-object-ios-bootstrap"
               src={object.posterSrc}
               alt=""
               aria-hidden="true"
               draggable={false}
               style={{ transform: `scaleX(${visualFacing})` }}
             />
+          ) : isIosDevice ? (
+            iosHevcSrc && !reducedMotion ? (
+              <video
+                ref={videoRef}
+                className="sea-object-video"
+                src={iosHevcSrc}
+                style={{ transform: `scaleX(${visualFacing})` }}
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                tabIndex={-1}
+                aria-hidden="true"
+                onError={() => setIosHevcSrc(null)}
+              />
+            ) : (
+              <img
+                className="sea-object-video sea-object-ios-animated"
+                src={reducedMotion ? object.posterSrc : (iosAnimatedWebpSrc ?? object.posterSrc)}
+                alt=""
+                aria-hidden="true"
+                draggable={false}
+                style={{ transform: `scaleX(${visualFacing})` }}
+              />
+            )
           ) : (
             <video
               ref={videoRef}

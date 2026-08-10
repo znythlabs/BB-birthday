@@ -25,6 +25,15 @@ export function isIos() {
   return isIphoneLike() || isIpad();
 }
 
+export function isStandaloneWebApp() {
+  if (typeof window === "undefined") return false;
+  const navigatorWithStandalone = window.navigator as Navigator & {
+    standalone?: boolean;
+  };
+  return window.matchMedia("(display-mode: standalone)").matches ||
+    navigatorWithStandalone.standalone === true;
+}
+
 export function isMobileFullscreen() {
   const fullscreenDocument = document as FullscreenDocument;
   return Boolean(

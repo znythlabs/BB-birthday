@@ -35,10 +35,15 @@ const MOBILE_FISH_VIDEOS = [
   "/images/mobile/smallfish2-transparent-mobile.webm",
   "/images/mobile/smallfish3-transparent-mobile.webm",
 ] as const;
-const FISH_IOS_POSTERS = [
-  "/images/underwater-v2/interactives/frames/keyed/smallfish1-key.webp",
-  "/images/underwater-v2/interactives/frames/keyed/smallfish2-key.webp",
-  "/images/underwater-v2/interactives/frames/keyed/smallfish3-key.webp",
+const IOS_FISH_ANIMATIONS = [
+  "/images/mobile/smallfish1-transparent-ios.webp",
+  "/images/mobile/smallfish2-transparent-ios.webp",
+  "/images/mobile/smallfish3-transparent-ios.webp",
+] as const;
+const IOS_FISH_STATIC = [
+  "/images/mobile/smallfish1-static-ios.webp",
+  "/images/mobile/smallfish2-static-ios.webp",
+  "/images/mobile/smallfish3-static-ios.webp",
 ] as const;
 
 const MAX_TILT = 0.14;
@@ -72,10 +77,12 @@ export function BackgroundFishSchools({ mermaidRef }: Props) {
   const layerRef = useRef<HTMLDivElement>(null);
   const groupRefs = useRef<Array<HTMLDivElement | null>>([]);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
-  const [useIosPoster, setUseIosPoster] = useState(false);
+  const [isIosDevice, setIsIosDevice] = useState<boolean | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    setUseIosPoster(isIos());
+    const frame = requestAnimationFrame(() => setIsIosDevice(isIos()));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -128,6 +135,7 @@ export function BackgroundFishSchools({ mermaidRef }: Props) {
 
     const syncReducedMotion = () => {
       reducedMotionRef.current = motionQuery.matches;
+      setReducedMotion(reducedMotionRef.current);
       for (const video of layer.querySelectorAll("video")) {
         if (reducedMotionRef.current || document.hidden) video.pause();
         else void video.play().catch(() => undefined);
@@ -378,12 +386,10 @@ export function BackgroundFishSchools({ mermaidRef }: Props) {
           }}
           className={"background-fish-group" + (index >= SCHOOL_SIZE ? " background-fish-group--desktop-only" : "")}
         >
-          {useIosPoster && index < SCHOOL_SIZE ? (
+          {isIosDevice === null ? null : isIosDevice ? (
             <img
-              className="background-fish-video background-fish-ios-poster"
-              src={FISH_IOS_POSTERS[index]}
+              src={(reducedMotion ? IOS_FISH_STATIC : IOS_FISH_ANIMATIONS)[index % SCHOOL_SIZE]}
               alt=""
-              aria-hidden="true"
               draggable={false}
             />
           ) : (
