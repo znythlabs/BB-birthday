@@ -797,26 +797,17 @@ button { color: inherit; }
     backdrop-filter: blur(14px) saturate(1.15);
   }
   .welcome-rotate-prompt { z-index: 140; }
-  /* The welcome prompt appears over the island (before the underwater layer
-     is active), so paint a blurred underwater still behind it to always read
-     as the underwater world. */
-  .welcome-rotate-prompt::before {
+  /* Both rotate prompts use the same blurred underwater still behind the
+     tint so the rotate message reads as the underwater world everywhere
+     (iOS welcome, iOS underwater, and Android underwater). */
+  .welcome-rotate-prompt::before,
+  .rotate-device-prompt::before {
     content: "";
     position: absolute;
     inset: -32px;
     background: url("/images/underwater/underwater-poster.jpg") center / cover no-repeat;
     filter: blur(22px) brightness(0.62) saturate(1.15);
     transform: scale(1.02);
-    z-index: -1;
-    pointer-events: none;
-  }
-  /* The underwater prompt sits over the live underwater video, so the
-     backdrop blur already shows the real scene through the tint. */
-  .rotate-device-prompt::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(1, 30, 46, 0.62), rgba(1, 48, 70, 0.55));
     z-index: -1;
     pointer-events: none;
   }
