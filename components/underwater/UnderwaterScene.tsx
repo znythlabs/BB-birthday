@@ -837,20 +837,22 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         </button>
       ) : null}
 
-      <div className="rotate-device-prompt" role="status">
-        <span className="rotate-device-icon" aria-hidden="true">↻</span>
-        <strong>Play in landscape</strong>
-        <span>
-          {isIphoneDevice
-            ? "Rotate your iPhone sideways to continue"
-            : "Rotate your device for full underwater controls"}
-        </span>
-        {!isIphoneDevice ? (
-          <button type="button" className="rotate-device-button" onClick={enterMobileFullscreen}>
-            Enter landscape
-          </button>
-        ) : null}
-      </div>
+      {sceneEntered ? (
+        <div className="rotate-device-prompt" role="status">
+          <span className="rotate-device-icon" aria-hidden="true">↻</span>
+          <strong>Play in landscape</strong>
+          <span>
+            {isIphoneDevice
+              ? "Rotate your iPhone sideways to continue"
+              : "Rotate your device for full underwater controls"}
+          </span>
+          {!isIphoneDevice ? (
+            <button type="button" className="rotate-device-button" onClick={enterMobileFullscreen}>
+              Enter landscape
+            </button>
+          ) : null}
+        </div>
+      ) : null}
     </>
   );
 
