@@ -764,13 +764,38 @@ button { color: inherit; }
     display: none;
     place-content: center;
     justify-items: center;
-    gap: 8px;
+    gap: 10px;
     padding: 28px;
-    background: linear-gradient(160deg, #075f7a, #032f49);
+    background: rgba(2, 42, 60, 0.72);
     color: white;
     text-align: center;
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    backdrop-filter: blur(14px) saturate(1.15);
   }
   .welcome-rotate-prompt { z-index: 140; }
+  /* The welcome prompt appears over the island (before the underwater layer
+     is active), so paint a blurred underwater still behind it to always read
+     as the underwater world. */
+  .welcome-rotate-prompt::before {
+    content: "";
+    position: absolute;
+    inset: -32px;
+    background: url("/images/underwater/underwater-poster.jpg") center / cover no-repeat;
+    filter: blur(22px) brightness(0.62) saturate(1.15);
+    transform: scale(1.02);
+    z-index: -1;
+    pointer-events: none;
+  }
+  /* The underwater prompt sits over the live underwater video, so the
+     backdrop blur already shows the real scene through the tint. */
+  .rotate-device-prompt::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(1, 30, 46, 0.62), rgba(1, 48, 70, 0.55));
+    z-index: -1;
+    pointer-events: none;
+  }
   .rotate-device-icon { font-size: 3.2rem; line-height: 1; animation: rotate-prompt 1.8s ease-in-out infinite; }
   .rotate-device-prompt strong,
   .welcome-rotate-prompt strong { font-family: Georgia, serif; font-size: 1.55rem; }
