@@ -52,7 +52,7 @@ import { MermaidCharacter } from "./MermaidCharacter";
 import { PartyDetailsDialog } from "./PartyDetailsDialog";
 import {
   enterMobileFullscreen as requestMobileFullscreen,
-  isIos,
+  isIphoneLike,
   isMobileFullscreen,
   toggleMobileFullscreen,
 } from "@/lib/mobileFullscreen";
@@ -76,7 +76,7 @@ const createInitialObjectPositions = (width: number, height: number): ObjectPosi
     ]),
   );
 
-export function UnderwaterScene({ active, adventureStarted }: { active?: boolean; adventureStarted?: boolean } = {}) {
+export function UnderwaterScene({ active }: { active?: boolean } = {}) {
   const sceneRef = useRef<HTMLElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const cursorTrailRef = useRef<HTMLSpanElement>(null);
@@ -100,7 +100,7 @@ export function UnderwaterScene({ active, adventureStarted }: { active?: boolean
     velocity: { x: 0, y: 0 },
   });
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isIosDevice, setIsIosDevice] = useState(false);
+  const [isIphoneDevice, setIsIphoneDevice] = useState(false);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const jellyfishTargetRef = useRef<Point | null>(null);
   const objectPositionsRef = useRef<ObjectPositions>({});
@@ -173,7 +173,7 @@ export function UnderwaterScene({ active, adventureStarted }: { active?: boolean
   }, []);
 
   useEffect(() => {
-    setIsIosDevice(isIos());
+    setIsIphoneDevice(isIphoneLike());
   }, []);
 
   useEffect(() => {
@@ -232,11 +232,6 @@ export function UnderwaterScene({ active, adventureStarted }: { active?: boolean
     observer.observe(scene);
     return () => observer.disconnect();
   }, [active]);
-
-  useEffect(() => {
-    if (!adventureStarted || !window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
-    void requestMobileFullscreen();
-  }, [adventureStarted]);
 
   // The desktop underwater background has preload="none", so on a cold cache
   // it has no decoded frame when the transition hands off — the scene would
@@ -830,23 +825,31 @@ export function UnderwaterScene({ active, adventureStarted }: { active?: boolean
         <span className="mobile-joystick-knob" />
       </div>
 
-      <button
-        type="button"
-        className="mobile-fullscreen-button"
-        onClick={toggleMobileFullscreen}
-        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen landscape"}
-      >
-        <span aria-hidden="true">⛶</span>
-        <span>{isFullscreen ? "Exit" : "Fullscreen"}</span>
-      </button>
+      {!isIphoneDevice ? (
+        <button
+          type="button"
+          className="mobile-fullscreen-button"
+          onClick={toggleMobileFullscreen}
+          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen landscape"}
+        >
+          <span aria-hidden="true">⛶</span>
+          <span>{isFullscreen ? "Exit" : "Fullscreen"}</span>
+        </button>
+      ) : null}
 
       <div className="rotate-device-prompt" role="status">
         <span className="rotate-device-icon" aria-hidden="true">↻</span>
         <strong>Play in landscape</strong>
-        <span>Rotate your device for full underwater controls</span>
-        <button type="button" className="rotate-device-button" onClick={enterMobileFullscreen}>
-          Enter landscape
-        </button>
+        <span>
+          {isIphoneDevice
+            ? "Rotate your iPhone sideways to continue"
+            : "Rotate your device for full underwater controls"}
+        </span>
+        {!isIphoneDevice ? (
+          <button type="button" className="rotate-device-button" onClick={enterMobileFullscreen}>
+            Enter landscape
+          </button>
+        ) : null}
       </div>
     </>
   );
@@ -855,7 +858,7 @@ export function UnderwaterScene({ active, adventureStarted }: { active?: boolean
     <>
     <section
       ref={sceneRef}
-      className={isIosDevice ? "underwater-scene ios-device" : "underwater-scene"}
+      className="underwater-scene"
       data-transitioning={!sceneEntered || undefined}
       data-dialog-open={showAllDetails || undefined}
       onPointerDown={(event) => {
