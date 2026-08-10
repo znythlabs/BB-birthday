@@ -430,7 +430,7 @@ button { color: inherit; }
 
 .background-fish-layer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .background-fish-group { position: absolute; left: 0; top: 0; width: clamp(64px, 9vw, 120px); will-change: transform; }
-.background-fish-group video { display: block; width: 100%; height: auto; }
+.background-fish-group video, .background-fish-group img { display: block; width: 100%; height: auto; }
 
 .sea-object-layer { position: absolute; inset: 0; pointer-events: none; }
 .underwater-scene, .underwater-scene * { cursor: none !important; }
@@ -733,6 +733,27 @@ button { color: inherit; }
   pointer-events: none;
   will-change: transform;
 }
+
+/* iOS cannot render the baked-black WebM as transparent, so it shows a keyed
+   transparent poster on top; the video stays playing (opacity 0) underneath so
+   the laugh audio keeps its currentTime sync clock. The wrapper is a zero-size
+   anchor; the video/poster position themselves from it exactly as before. */
+.mermaid-character {
+  position: absolute;
+  width: 0;
+  height: 0;
+  z-index: 24;
+  pointer-events: none;
+}
+.mermaid-character .mermaid-video,
+.mermaid-character .mermaid-ios-poster {
+  position: absolute;
+}
+.mermaid-ios-poster {
+  z-index: 2;
+  filter: none;
+}
+.mermaid-character.ios-keyed .mermaid-video { opacity: 0; }
 
 @media (max-width: 1200px) {
   .desktop-underwater-background { display: none; }

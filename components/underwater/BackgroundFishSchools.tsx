@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
+import { isIos } from "@/lib/mobileFullscreen";
 import { clamp } from "@/lib/distance";
 import {
   CRUISE_SPEED,
@@ -33,6 +34,11 @@ const MOBILE_FISH_VIDEOS = [
   "/images/mobile/smallfish1-transparent-mobile.webm",
   "/images/mobile/smallfish2-transparent-mobile.webm",
   "/images/mobile/smallfish3-transparent-mobile.webm",
+] as const;
+const FISH_IOS_POSTERS = [
+  "/images/underwater-v2/interactives/frames/keyed/smallfish1-key.webp",
+  "/images/underwater-v2/interactives/frames/keyed/smallfish2-key.webp",
+  "/images/underwater-v2/interactives/frames/keyed/smallfish3-key.webp",
 ] as const;
 
 const MAX_TILT = 0.14;
@@ -66,6 +72,11 @@ export function BackgroundFishSchools({ mermaidRef }: Props) {
   const layerRef = useRef<HTMLDivElement>(null);
   const groupRefs = useRef<Array<HTMLDivElement | null>>([]);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+  const [useIosPoster, setUseIosPoster] = useState(false);
+
+  useEffect(() => {
+    setUseIosPoster(isIos());
+  }, []);
 
   useEffect(() => {
     const layer = layerRef.current;
@@ -367,29 +378,39 @@ export function BackgroundFishSchools({ mermaidRef }: Props) {
           }}
           className={"background-fish-group" + (index >= SCHOOL_SIZE ? " background-fish-group--desktop-only" : "")}
         >
-          <video
-            ref={(element) => {
-              videoRefs.current[index] = element;
-            }}
-            muted
-            autoPlay
-            loop
-            playsInline
-            preload="metadata"
-            tabIndex={-1}
-          >
-            {index < SCHOOL_SIZE ? (
+          {useIosPoster && index < SCHOOL_SIZE ? (
+            <img
+              className="background-fish-video background-fish-ios-poster"
+              src={FISH_IOS_POSTERS[index]}
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+            />
+          ) : (
+            <video
+              ref={(element) => {
+                videoRefs.current[index] = element;
+              }}
+              muted
+              autoPlay
+              loop
+              playsInline
+              preload="metadata"
+              tabIndex={-1}
+            >
+              {index < SCHOOL_SIZE ? (
+                <source
+                  media="(max-width: 1200px)"
+                  src={MOBILE_FISH_VIDEOS[index]}
+                  type="video/webm"
+                />
+              ) : null}
               <source
-                media="(max-width: 1200px)"
-                src={MOBILE_FISH_VIDEOS[index]}
+                src={FISH_VIDEOS[index % SCHOOL_SIZE]}
                 type="video/webm"
               />
-            ) : null}
-            <source
-              src={FISH_VIDEOS[index % SCHOOL_SIZE]}
-              type="video/webm"
-            />
-          </video>
+            </video>
+          )}
         </div>
       ))}
     </div>
