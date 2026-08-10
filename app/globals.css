@@ -476,10 +476,10 @@ button { color: inherit; }
 /* The jellyfish is a portrait creature (bell + long tentacles). Its source
    art is 9:16, so give it a portrait box so nothing is cropped. */
 .sea-object-jellyfish {
-  width: calc(var(--object-width) * var(--object-scale) * 0.58);
+  width: calc(var(--object-width) * var(--object-scale) * 0.44);
   aspect-ratio: 9 / 16;
-  margin-top: calc(var(--object-width) * var(--object-scale) * 0.58 * -0.8889);
-  margin-left: calc(var(--object-width) * var(--object-scale) * 0.58 * -0.5);
+  margin-top: calc(var(--object-width) * var(--object-scale) * 0.44 * -0.8889);
+  margin-left: calc(var(--object-width) * var(--object-scale) * 0.44 * -0.5);
 }
 
 
