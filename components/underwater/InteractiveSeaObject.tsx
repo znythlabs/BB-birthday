@@ -52,7 +52,7 @@ export function InteractiveSeaObject({
   const shadowSrc = OBJECT_SHADOW_PATHS[object.kind];
   const mobileShadowSrc = MOBILE_SHADOW_PATHS[object.kind];
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
-  const [useIosPoster, setUseIosPoster] = useState<boolean | null>(null);
+  const [useIosPoster, setUseIosPoster] = useState<boolean>(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const globalX = position?.x ?? (object.x / 100) * sceneWidth;
@@ -139,7 +139,7 @@ export function InteractiveSeaObject({
       ) : null}
       {videoSrc ? (
         <span className="sea-object-media">
-          {useIosPoster !== false ? (
+          {useIosPoster === true ? (
             <img
               className="sea-object-video sea-object-ios-poster"
               src={object.posterSrc}
