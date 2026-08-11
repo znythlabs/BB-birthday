@@ -164,6 +164,9 @@ export function InteractiveSeaObject({
       aria-expanded={active}
       aria-controls={active ? "active-party-detail" : undefined}
       data-active={active || undefined}
+      onPointerDown={(event) => {
+        if (event.pointerType !== "mouse") onActivate(object);
+      }}
       onClick={() => onActivate(object)}
     >
       <span className="sea-object-glow" aria-hidden="true" />

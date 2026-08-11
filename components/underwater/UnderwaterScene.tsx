@@ -717,13 +717,12 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
             y: (object.y / 100) * height,
           };
           const distance = distanceBetween(current, objectPoint);
-          const radius = Math.min(
-            object.radius,
-            Math.max(
-              mobileRef.current ? 98 : 76,
-              Math.min(width, height) * (mobileRef.current ? 0.24 : 0.15),
-            ),
-          );
+          const radius = mobileRef.current
+            ? Math.max(object.radius, Math.min(width, height) * 0.34)
+            : Math.min(
+                object.radius,
+                Math.max(76, Math.min(width, height) * 0.15),
+              );
           if (
             dismissedIdRef.current === object.id &&
             distance > radius * 1.18
@@ -968,7 +967,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
           }, 2000);
         }
         if (showAllDetails) return;
-        if (event.pointerType === "mouse" || draggingPointerRef.current === event.pointerId) moveTargetFromPointer(event);
+        if (event.pointerType === "mouse") moveTargetFromPointer(event);
       }}
       onPointerLeave={() => {
         pointerTargetRef.current = null;

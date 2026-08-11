@@ -116,16 +116,16 @@ button { color: inherit; }
 }
 
 .welcome-dive-island {
-  z-index: -3;
+  z-index: 0;
 }
 
 .welcome-dive-transition {
-  z-index: -2;
+  z-index: 1;
   opacity: 0;
 }
 
 .welcome-dive-underwater {
-  z-index: -1;
+  z-index: 2;
   opacity: 0;
 }
 
@@ -140,7 +140,7 @@ button { color: inherit; }
 
 .welcome-shade {
   position: absolute;
-  z-index: 0;
+  z-index: 3;
   inset: 0;
   background: linear-gradient(180deg, transparent 55%, rgba(3, 61, 91, 0.16));
   pointer-events: none;
@@ -149,7 +149,7 @@ button { color: inherit; }
 
 .welcome-dive-content {
   position: absolute;
-  z-index: 1;
+  z-index: 4;
   inset: 0;
   display: grid;
   place-items: center;
@@ -775,10 +775,10 @@ button { color: inherit; }
     content: "";
     position: absolute;
     z-index: 6;
-    inset: -24%;
+    inset: -40%;
     border-radius: 42%;
   }
-  .sea-object-fish-courier::before { inset: -28%; }
+  .sea-object-fish-courier::before { inset: -44%; }
   .game-cursor-dot, .game-cursor-trail { display: none; }
   .underwater-scene { min-height: 0; height: 100dvh; }
   .welcome-dive-pin { min-height: 0; height: 100dvh; }

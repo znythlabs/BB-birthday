@@ -40,17 +40,21 @@ test("iPhone app mode is wired as a standalone landscape web app", async () => {
 });
 
 test("iOS keeps transition media isolated and enlarges all sea-object touch targets", async () => {
-  const [welcome, scene, mermaid, css] = await Promise.all([
+  const [welcome, scene, mermaid, objectActor, css] = await Promise.all([
     readFile(new URL("../components/invitation/WelcomeDiveSequence.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/UnderwaterScene.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/underwater/MermaidCharacter.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/underwater/InteractiveSeaObject.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
-  assert.match(welcome, /gsap\.set\(island, \{ opacity: iosDevice \? 1 - transitionMix : 1 \}\)/);
+  assert.match(welcome, /gsap\.set\(island, \{ opacity: 1 \}\)/);
   assert.match(welcome, /className="welcome-dive-transition"[\s\S]{0,180}preload="auto"/);
   assert.match(scene, /setMobileMediaMounted\(true\)/);
-  assert.match(scene, /mobileRef\.current \? 98 : 76/);
+  assert.match(scene, /Math\.max\(object\.radius, Math\.min\(width, height\) \* 0\.34\)/);
+  assert.doesNotMatch(scene, /draggingPointerRef\.current === event\.pointerId\) moveTargetFromPointer/);
   assert.match(scene, /iosFrameBudget \? 33 : 16/);
   assert.match(mermaid, /<picture className="mermaid-ios-visual">/);
-  assert.match(css, /\.sea-object::before\s*\{[\s\S]{0,120}inset:\s*-24%/);
+  assert.match(objectActor, /if \(event\.pointerType !== "mouse"\) onActivate\(object\)/);
+  assert.match(css, /\.welcome-dive-transition\s*\{[\s\S]{0,80}z-index:\s*1/);
+  assert.match(css, /\.sea-object::before\s*\{[\s\S]{0,120}inset:\s*-40%/);
 });

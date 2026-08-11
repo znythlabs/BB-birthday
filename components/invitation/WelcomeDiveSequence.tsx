@@ -10,7 +10,7 @@ import {
   createRafVideoSeeker,
   scrollProgressToTime,
 } from "@/lib/scrollVideo.mjs";
-import { enterMobileFullscreen, isIos, isIphoneLike } from "@/lib/mobileFullscreen";
+import { enterMobileFullscreen, isIphoneLike } from "@/lib/mobileFullscreen";
 
 export function WelcomeDiveSequence({
   adventureStarted,
@@ -87,7 +87,6 @@ export function WelcomeDiveSequence({
 
     gsap.registerPlugin(ScrollTrigger);
     transition.pause();
-    const iosDevice = isIos();
 
     const refreshMobileTrigger = () => {
       if (window.matchMedia("(max-width: 1200px)").matches) ScrollTrigger.refresh();
@@ -112,10 +111,9 @@ export function WelcomeDiveSequence({
         // Hold transition's final frame while underwater scene crossfades over it.
         seeker.seek(scrollProgressToTime(Math.min(1, progress / 0.9), duration));
         setUnderwaterActive((active) => underwaterHandoff > 0 || active);
-        // Keep the current layer opaque beneath the next one. Fading the
-        // island out only after the transition is visible prevents both a dark
-        // midpoint and iOS compositing the opaque island video over the scrub.
-        gsap.set(island, { opacity: iosDevice ? 1 - transitionMix : 1 });
+        // Keep the island painted beneath the scrub. Safari can defer a paused
+        // video's first decoded frame; the island prevents a blue gap meanwhile.
+        gsap.set(island, { opacity: 1 });
         gsap.set(transition, { opacity: transitionMix });
         gsap.set(underwater, { opacity: underwaterHandoff });
         gsap.set(shade, { opacity: 1 - underwaterHandoff });
