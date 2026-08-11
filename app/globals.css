@@ -751,6 +751,10 @@ button { color: inherit; }
 .mermaid-character .mermaid-video {
   position: absolute;
 }
+.mermaid-ios-visual {
+  position: absolute;
+  inset: 0;
+}
 .mermaid-timeline-video {
   position: absolute;
   z-index: -20;
@@ -767,13 +771,14 @@ button { color: inherit; }
   .mobile-underwater-background { display: block; }
   .background-fish-group--desktop-only { display: none; }
   .sea-object-dedicated-shadow { opacity: 0.4; }
-  .sea-object-fish-courier::before {
+  .sea-object::before {
     content: "";
     position: absolute;
     z-index: 6;
-    inset: -28%;
-    border-radius: 50%;
+    inset: -24%;
+    border-radius: 42%;
   }
+  .sea-object-fish-courier::before { inset: -28%; }
   .game-cursor-dot, .game-cursor-trail { display: none; }
   .underwater-scene { min-height: 0; height: 100dvh; }
   .welcome-dive-pin { min-height: 0; height: 100dvh; }

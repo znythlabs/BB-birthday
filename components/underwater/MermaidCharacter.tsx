@@ -118,13 +118,19 @@ export function MermaidCharacter({
 
   const iosAnimated = (
     <>
-      <img
-        className="mermaid-video"
-        style={videoStyle}
-        src={reducedMotion ? MERMAID_IOS_STATIC_PATH : MERMAID_IOS_ANIMATED_PATH}
-        alt="Lilianna swimming as a mermaid"
-        draggable={false}
-      />
+      <picture className="mermaid-ios-visual">
+        <source
+          srcSet={reducedMotion ? MERMAID_IOS_STATIC_PATH : MERMAID_IOS_ANIMATED_PATH}
+          type="image/webp"
+        />
+        <img
+          className="mermaid-video"
+          style={videoStyle}
+          src={MERMAID_IOS_STATIC_PATH}
+          alt="Lilianna swimming as a mermaid"
+          draggable={false}
+        />
+      </picture>
       <video
         ref={videoRefCallback}
         className="mermaid-timeline-video"

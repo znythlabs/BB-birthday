@@ -233,6 +233,13 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hasDiscovered, setHasDiscovered] = useState(false);
+  const [mobileMediaMounted, setMobileMediaMounted] = useState(false);
+  useEffect(() => {
+    if (!active || !window.matchMedia(MOBILE_MEDIA_QUERY).matches) return;
+    const frame = requestAnimationFrame(() => setMobileMediaMounted(true));
+    return () => cancelAnimationFrame(frame);
+  }, [active]);
+
   useEffect(() => {
     const scene = sceneRef.current;
     if (!scene) return;
@@ -440,6 +447,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
 
     const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const mobileQuery = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const iosFrameBudget = isIphoneDevice === true;
     const syncMotionPreference = () => {
       reducedMotionRef.current = motionQuery.matches;
       mobileRef.current = mobileQuery.matches;
@@ -690,7 +698,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         }
       }
 
-      if (width && height && now - lastVisualUpdate >= 16) {
+      if (width && height && now - lastVisualUpdate >= (iosFrameBudget ? 33 : 16)) {
         setMermaidVisual({
           x: current.x,
           y: current.y,
@@ -711,7 +719,10 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
           const distance = distanceBetween(current, objectPoint);
           const radius = Math.min(
             object.radius,
-            Math.max(76, Math.min(width, height) * 0.15),
+            Math.max(
+              mobileRef.current ? 98 : 76,
+              Math.min(width, height) * (mobileRef.current ? 0.24 : 0.15),
+            ),
           );
           if (
             dismissedIdRef.current === object.id &&
@@ -760,7 +771,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       mobileQuery.removeEventListener("change", syncMotionPreference);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [updateActiveId]);
+  }, [isIphoneDevice, updateActiveId]);
 
   useEffect(
     () => () => {
@@ -1012,7 +1023,9 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       >
         <source media="(min-width: 1201px)" src="/images/underwater/newunderwater.mp4" type="video/mp4" />
       </video>
-      <BackgroundFishSchools mermaidRef={currentRef} />
+      {mobileMediaMounted || !isIphoneDevice ? (
+        <BackgroundFishSchools mermaidRef={currentRef} />
+      ) : null}
       <AmbientLayers />
 
       <header className="underwater-title-lockup">
@@ -1040,7 +1053,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
       </p>
 
       <div className="sea-object-layer">
-        {interactiveObjects.map((object) => (
+        {(mobileMediaMounted || !isIphoneDevice ? interactiveObjects : []).map((object) => (
           <InteractiveSeaObject
             key={object.id}
             object={object}
@@ -1054,6 +1067,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         ))}
       </div>
 
+      {mobileMediaMounted || !isIphoneDevice ? (
       <MermaidCharacter
         facing={mermaidVisual.facing}
         onVideoElement={(element) => {
@@ -1063,6 +1077,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
         x={mermaidVisual.x}
         y={mermaidVisual.y}
       />
+      ) : null}
       {activeObject ? (
         <BubbleMessage
           object={activeObject}
