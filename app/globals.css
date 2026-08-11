@@ -29,6 +29,23 @@
 
 * { box-sizing: border-box; }
 html, body { width: 100%; min-height: 100%; margin: 0; }
+html:fullscreen,
+html:fullscreen body,
+html:-webkit-full-screen,
+html:-webkit-full-screen body {
+  width: 100%;
+  min-height: 100%;
+}
+html:fullscreen .welcome-dive-pin,
+html:fullscreen .welcome-dive-underwater,
+html:fullscreen .underwater-scene,
+html:-webkit-full-screen .welcome-dive-pin,
+html:-webkit-full-screen .welcome-dive-underwater,
+html:-webkit-full-screen .underwater-scene {
+  width: 100%;
+  height: var(--fullscreen-height, 100dvh) !important;
+  min-height: 0;
+}
 html.mobile-underwater-locked,
 body.mobile-underwater-locked { overflow: hidden; }
 
@@ -102,6 +119,7 @@ button { color: inherit; }
 
 .welcome-dive-island,
 .welcome-dive-transition,
+.welcome-dive-transition-ios,
 .welcome-dive-underwater {
   position: absolute;
   inset: 0;
@@ -119,9 +137,17 @@ button { color: inherit; }
   z-index: 0;
 }
 
-.welcome-dive-transition {
+.welcome-dive-transition,
+.welcome-dive-transition-ios {
   z-index: 1;
   opacity: 0;
+}
+
+.welcome-dive-transition-ios {
+  display: none;
+  background-repeat: no-repeat;
+  background-size: 400% 400%;
+  background-position: 0 0;
 }
 
 .welcome-dive-underwater {
@@ -769,6 +795,7 @@ button { color: inherit; }
 @media (max-width: 1200px) {
   .desktop-underwater-background { display: none; }
   .mobile-underwater-background { display: block; }
+  .welcome-dive-transition-ios { display: block; }
   .background-fish-group--desktop-only { display: none; }
   .sea-object-dedicated-shadow { opacity: 0.4; }
   .sea-object::before {
@@ -939,6 +966,10 @@ button { color: inherit; }
   .underwater-scene[data-dialog-open] > .rotate-device-prompt { display: none !important; }
   .details-list dt { font-size: 0.58rem; }
   .details-list dd { font-size: 0.82rem; }
+  .underwater-scene[data-ios] .details-dialog-kicker,
+  .underwater-scene[data-ios] .details-list dt { font-weight: 650; }
+  .underwater-scene[data-ios] .details-dialog-intro { font-weight: 400; }
+  .underwater-scene[data-ios] .details-list dd { font-weight: 450; }
 
   .welcome-scroll-cue {
     left: auto;

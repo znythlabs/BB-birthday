@@ -10,7 +10,12 @@ import {
   createRafVideoSeeker,
   scrollProgressToTime,
 } from "@/lib/scrollVideo.mjs";
-import { enterMobileFullscreen, isIphoneLike } from "@/lib/mobileFullscreen";
+import { enterMobileFullscreen, isIos, isIphoneLike } from "@/lib/mobileFullscreen";
+
+const IOS_TRANSITION_ATLASES = Array.from(
+  { length: 8 },
+  (_, index) => `/images/mobile/transition-ios-atlas/transition-ios-${String(index + 1).padStart(2, "0")}.webp`,
+);
 
 export function WelcomeDiveSequence({
   adventureStarted,
@@ -23,13 +28,16 @@ export function WelcomeDiveSequence({
   const pinRef = useRef<HTMLDivElement>(null);
   const islandRef = useRef<HTMLVideoElement>(null);
   const transitionRef = useRef<HTMLVideoElement>(null);
+  const iosTransitionRef = useRef<HTMLDivElement>(null);
   const underwaterRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const shadeRef = useRef<HTMLDivElement>(null);
   const [duration, setDuration] = useState(0);
+  const [iosTransitionMode, setIosTransitionMode] = useState<boolean | null>(null);
   const [underwaterActive, setUnderwaterActive] = useState(false);
   const [needsManualRotation, setNeedsManualRotation] = useState(false);
   const committedRef = useRef(false);
+  const iosAtlasImagesRef = useRef<HTMLImageElement[]>([]);
 
   // iPhone Safari/Chrome cannot auto-enter fullscreen or lock orientation, so
   // the rotate prompt should greet iPhone users immediately on load (portrait).
@@ -40,6 +48,24 @@ export function WelcomeDiveSequence({
   }, []);
 
   useEffect(() => {
+    const ios = isIos();
+    setIosTransitionMode(ios);
+    if (!ios) return;
+    setDuration(8.066667);
+    iosAtlasImagesRef.current = IOS_TRANSITION_ATLASES.map((src) => {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = src;
+      void image.decode().catch(() => undefined);
+      return image;
+    });
+    return () => {
+      iosAtlasImagesRef.current = [];
+    };
+  }, []);
+
+  useEffect(() => {
+    if (iosTransitionMode !== false) return;
     const video = transitionRef.current;
     if (!video) return;
 
@@ -54,21 +80,18 @@ export function WelcomeDiveSequence({
       setDuration(clipDuration);
     };
 
-    if (video.readyState >= 1) {
-      syncMetadata();
-      return;
-    }
-
     video.addEventListener("loadedmetadata", syncMetadata, { once: true });
-    return () =>
-      video.removeEventListener("loadedmetadata", syncMetadata);
-  }, []);
+    video.load();
+    if (video.readyState >= 1) syncMetadata();
+    return () => video.removeEventListener("loadedmetadata", syncMetadata);
+  }, [iosTransitionMode]);
 
   useEffect(() => {
     const trigger = triggerRef.current;
     const pin = pinRef.current;
     const island = islandRef.current;
     const transition = transitionRef.current;
+    const iosTransition = iosTransitionRef.current;
     const underwater = underwaterRef.current;
     const content = contentRef.current;
     const shade = shadeRef.current;
@@ -87,13 +110,17 @@ export function WelcomeDiveSequence({
 
     gsap.registerPlugin(ScrollTrigger);
     transition.pause();
+    const iosDevice = isIos();
 
-    const refreshMobileTrigger = () => {
-      if (window.matchMedia("(max-width: 1200px)").matches) ScrollTrigger.refresh();
+    const refreshTrigger = () => {
+      requestAnimationFrame(() => {
+        document.documentElement.style.setProperty("--fullscreen-height", `${window.innerHeight}px`);
+        ScrollTrigger.refresh();
+      });
     };
-    window.addEventListener("resize", refreshMobileTrigger);
-    window.addEventListener("orientationchange", refreshMobileTrigger);
-    document.addEventListener("fullscreenchange", refreshMobileTrigger);
+    window.addEventListener("resize", refreshTrigger);
+    window.addEventListener("orientationchange", refreshTrigger);
+    document.addEventListener("fullscreenchange", refreshTrigger);
 
     const media = gsap.matchMedia();
     media.add("(prefers-reduced-motion: no-preference)", () => {
@@ -108,13 +135,24 @@ export function WelcomeDiveSequence({
           Math.max(0, (progress - 0.9) / 0.1),
         );
 
-        // Hold transition's final frame while underwater scene crossfades over it.
-        seeker.seek(scrollProgressToTime(Math.min(1, progress / 0.9), duration));
+        // Safari's paused-video seeking can show only the stacking background.
+        // iOS scrubs a lightweight 15fps sprite atlas; other platforms keep the MP4 seeker.
+        const scrubProgress = Math.min(1, progress / 0.9);
+        if (iosDevice && iosTransition) {
+          const frame = Math.min(120, Math.floor(scrubProgress * 120));
+          const sheet = Math.floor(frame / 16) + 1;
+          const tile = frame % 16;
+          iosTransition.style.backgroundImage = `url(${IOS_TRANSITION_ATLASES[sheet - 1]})`;
+          iosTransition.style.backgroundPosition = `${(tile % 4) * (100 / 3)}% ${Math.floor(tile / 4) * (100 / 3)}%`;
+        } else {
+          seeker.seek(scrollProgressToTime(scrubProgress, duration));
+        }
         setUnderwaterActive((active) => underwaterHandoff > 0 || active);
         // Keep the island painted beneath the scrub. Safari can defer a paused
         // video's first decoded frame; the island prevents a blue gap meanwhile.
         gsap.set(island, { opacity: 1 });
-        gsap.set(transition, { opacity: transitionMix });
+        gsap.set(transition, { opacity: iosDevice ? 0 : transitionMix });
+        if (iosTransition) gsap.set(iosTransition, { opacity: iosDevice ? transitionMix : 0 });
         gsap.set(underwater, { opacity: underwaterHandoff });
         gsap.set(shade, { opacity: 1 - underwaterHandoff });
         gsap.set(content, {
@@ -164,9 +202,10 @@ export function WelcomeDiveSequence({
     });
 
     return () => {
-      window.removeEventListener("resize", refreshMobileTrigger);
-      window.removeEventListener("orientationchange", refreshMobileTrigger);
-      document.removeEventListener("fullscreenchange", refreshMobileTrigger);
+      window.removeEventListener("resize", refreshTrigger);
+      window.removeEventListener("orientationchange", refreshTrigger);
+      document.removeEventListener("fullscreenchange", refreshTrigger);
+      document.documentElement.style.removeProperty("--fullscreen-height");
       pin.removeAttribute("data-underwater-committed");
       document.documentElement.classList.remove("mobile-underwater-locked");
       document.body.classList.remove("mobile-underwater-locked");
@@ -200,6 +239,12 @@ export function WelcomeDiveSequence({
           <source src="/images/underwater/island.mp4" type="video/mp4" />
         </video>
 
+        <div
+          ref={iosTransitionRef}
+          className="welcome-dive-transition-ios"
+          aria-hidden="true"
+        />
+
         <video
           ref={transitionRef}
           className="welcome-dive-transition"
@@ -209,16 +254,20 @@ export function WelcomeDiveSequence({
           aria-hidden="true"
           tabIndex={-1}
         >
-          <source
-            media="(max-width: 1200px)"
-            src="/images/mobile/transition-scrub-mobile.mp4"
-            type="video/mp4"
-          />
-          <source
-            src="/images/underwater/transition-scrub-smooth.mp4"
-            type="video/mp4"
-          />
-          <source src="/images/underwater/transition.mp4" type="video/mp4" />
+          {iosTransitionMode === false ? (
+            <>
+              <source
+                media="(max-width: 1200px)"
+                src="/images/mobile/transition-scrub-mobile.mp4"
+                type="video/mp4"
+              />
+              <source
+                src="/images/underwater/transition-scrub-smooth.mp4"
+                type="video/mp4"
+              />
+              <source src="/images/underwater/transition.mp4" type="video/mp4" />
+            </>
+          ) : null}
         </video>
 
         <div ref={underwaterRef} className="welcome-dive-underwater">
@@ -244,7 +293,7 @@ export function WelcomeDiveSequence({
                     void enterMobileFullscreen();
                   } else if (!document.fullscreenElement) {
                     void document.documentElement
-                      .requestFullscreen()
+                      .requestFullscreen({ navigationUI: "hide" })
                       .catch(() => undefined);
                   }
                   onStartAdventure();

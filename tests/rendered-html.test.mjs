@@ -41,7 +41,10 @@ test("server-renders Liliana's invitation shell", async () => {
 });
 
 test("keeps one unified media stage above the normal-flow underwater handoff", async () => {
-  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  const [css, source] = await Promise.all([
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+    readFile(new URL("../components/invitation/WelcomeDiveSequence.tsx", import.meta.url), "utf8"),
+  ]);
   const sequenceRule = css.match(/\.welcome-dive-sequence\s*\{([^}]*)\}/)?.[1] ?? "";
 
   assert.match(
@@ -49,13 +52,20 @@ test("keeps one unified media stage above the normal-flow underwater handoff", a
     /\.welcome-dive-pin\s*\{[^}]*isolation:\s*isolate;[^}]*z-index:\s*1/s,
   );
   assert.doesNotMatch(sequenceRule, /height\s*:/);
-  assert.match(css, /\.welcome-dive-transition\s*\{[^}]*opacity:\s*0/);
+  assert.match(css, /\.welcome-dive-transition,\s*\n\.welcome-dive-transition-ios\s*\{[^}]*opacity:\s*0/);
   assert.match(css, /\.welcome-dive-underwater\s*\{[^}]*opacity:\s*0/);
   assert.doesNotMatch(css, /\.scroll-dive-transition\s*\{/);
   assert.match(
     css,
     /\.underwater-scene\[data-transitioning\]\s*>\s*:not\(\.underwater-background\)/,
   );
+  assert.match(css, /html:fullscreen \.welcome-dive-pin/);
+  assert.match(css, /html:fullscreen \.underwater-scene/);
+  assert.match(css, /height:\s*var\(--fullscreen-height, 100dvh\) !important/);
+  assert.match(css, /html:-webkit-full-screen \.welcome-dive-pin/);
+  assert.doesNotMatch(css, /html:fullscreen \.welcome-dive-sequence/);
+  assert.match(source, /document\.documentElement\.style\.setProperty\("--fullscreen-height", `\$\{window\.innerHeight\}px`\)/);
+  assert.match(source, /document\.addEventListener\("fullscreenchange", refreshTrigger\)/);
 });
 
 test("positions compact glass bubble from live geometry", async () => {

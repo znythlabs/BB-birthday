@@ -40,6 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
         { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
       ],
       apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+      shortcut: [{ url: "/favicon.ico" }],
     },
     openGraph: {
       title: "Lilianna’s First Birthday",

@@ -48,6 +48,13 @@ test("iOS keeps transition media isolated and enlarges all sea-object touch targ
     readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
   ]);
   assert.match(welcome, /gsap\.set\(island, \{ opacity: 1 \}\)/);
+  assert.match(welcome, /setIosTransitionMode\(ios\)/);
+  assert.match(welcome, /setDuration\(8\.066667\)/);
+  assert.match(welcome, /iosTransitionMode === false/);
+  assert.match(welcome, /className="welcome-dive-transition-ios"/);
+  assert.match(welcome, /IOS_TRANSITION_ATLASES/);
+  assert.match(welcome, /image\.decode\(\)/);
+  assert.match(welcome, /transition-ios-atlas\/transition-ios-/);
   assert.match(welcome, /className="welcome-dive-transition"[\s\S]{0,180}preload="auto"/);
   assert.match(scene, /setMobileMediaMounted\(true\)/);
   assert.match(scene, /Math\.max\(object\.radius, Math\.min\(width, height\) \* 0\.34\)/);
@@ -55,6 +62,9 @@ test("iOS keeps transition media isolated and enlarges all sea-object touch targ
   assert.match(scene, /iosFrameBudget \? 33 : 16/);
   assert.match(mermaid, /<picture className="mermaid-ios-visual">/);
   assert.match(objectActor, /if \(event\.pointerType !== "mouse"\) onActivate\(object\)/);
-  assert.match(css, /\.welcome-dive-transition\s*\{[\s\S]{0,80}z-index:\s*1/);
+  assert.match(css, /\.welcome-dive-transition,[\s\S]{0,80}\.welcome-dive-transition-ios[\s\S]{0,80}z-index:\s*1/);
+  assert.match(css, /\.welcome-dive-transition-ios\s*\{[\s\S]{0,120}background-size:\s*400% 400%/);
   assert.match(css, /\.sea-object::before\s*\{[\s\S]{0,120}inset:\s*-40%/);
+  assert.match(scene, /data-ios=\{isIphoneDevice === true \|\| undefined\}/);
+  assert.match(css, /\.underwater-scene\[data-ios\] \.details-list dd\s*\{\s*font-weight:\s*450/);
 });

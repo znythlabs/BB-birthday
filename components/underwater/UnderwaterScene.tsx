@@ -923,6 +923,7 @@ export function UnderwaterScene({ active }: { active?: boolean } = {}) {
     <section
       ref={sceneRef}
       className="underwater-scene"
+      data-ios={isIphoneDevice === true || undefined}
       data-transitioning={!sceneEntered || undefined}
       data-dialog-open={showAllDetails || showIosInstallHelp || undefined}
       onPointerDown={(event) => {
